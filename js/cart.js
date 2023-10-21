@@ -11,9 +11,9 @@
 
 
         getProfileLink(profileID) {
-            let domain = document.location.hostname;
+            let domain = window.location.origin;
 
-            return `https://${domain}/users/${profileID}`;
+            return `${origin}/users/${profileID}`;
         }
     }
 
