@@ -10,9 +10,8 @@
         }
 
 
-        getProfileLink(profile) {
+        getProfileLink(profileID) {
             let domain = document.location.hostname;
-            let profileID = profile.getProfileID();
 
             return `https://${domain}/users/${profileID}`;
         }
