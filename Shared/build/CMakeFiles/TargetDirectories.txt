@@ -1,0 +1,3 @@
+/Shared/build/CMakeFiles/cartserver.dir
+/Shared/build/CMakeFiles/edit_cache.dir
+/Shared/build/CMakeFiles/rebuild_cache.dir
