@@ -1,0 +1,5 @@
+// To run in CMD
+docker run --rm -ti -p 8080:23500 -v %cd%\Shared:/Shared --name mywebserver webserver:shoppingcart /Shared/build/cartserver
+
+// To Run in bash
+docker run --rm -ti -p 8080:23500 -v "$(pwd):/Shared" --name mywebserver webserver:shoppingcart /Shared/build/cartserver
