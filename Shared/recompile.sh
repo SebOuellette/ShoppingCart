@@ -1,6 +1,7 @@
-#!/bin/bash
-rm -r build
-cmake -S . -B build
+#!/bin/bash .
 
-cd build 
-make
+rm -r build;
+cmake -S . -B build;
+
+cd build;
+make;
