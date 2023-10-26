@@ -1,11 +1,128 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #d9a5ee; /* Light pink background */
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #784aad; /* Dark pink header */
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .cart-icon {
+            font-size: 36px;
+            color: #ff66b2; /* Dark pink cart icon */
+        }
+
+        .cart-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .cart-item {
+            background-color: #fff;
+            border: 1px solid #3e1d55; /* Dark pink border */
+            margin-bottom: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-item img {
+            max-width: 100px;
+            max-height: 100px;
+            margin-right: 10px;
+        }
+
+        .cart-item-details {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .cart-item-price {
+            color: #ff66b2; /* Dark pink price */
+        }
+
+        .cart-item-quantity {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .cart-item-remove {
+            background-color: #ff6961; /* Coral red remove button */
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            font-weight: bold;
+            margin-top: 10px;
+            color: #ff66b2; /* Dark pink total */
+        }
+
+        .checkout-button {
+            background-color: #4caf50; /* Green checkout button */
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
+    <header>
+        <h1>Shopping Cart</h1>
+    </header>
+    <div class="container">
+        <div>
+            <span class="cart-icon">🛒</span>
+            <h2>Your Shopping Cart</h2>
+            <ul class="cart-list">
+                <li class="cart-item">
+                    <img src="product1.jpg" alt="Product 1">
+                    <div class="cart-item-details">
+                        <h3 class="cart-item-title">Product 1</h3>
+                        <p class="cart-item-price">$10.99</p>
+                        <p class="cart-item-quantity">Quantity: 1</p>
+                    </div>
+                    <button class="cart-item-remove">Remove</button>
+                </li>
+                <li class="cart-item">
+                    <img src="product2.jpg" alt="Product 2">
+                    <div class="cart-item-details">
+                        <h3 class="cart-item-title">Product 2</h3>
+                        <p class="cart-item-price">$19.99</p>
+                        <p class="cart-item-quantity">Quantity: 2</p>
+                    </div>
+                    <button class="cart-item-remove">Remove</button>
+                </li>
+                <!-- Add more cart items here -->
+            </ul>
+            <p class="cart-total">Total: $50.97</p>
+            <button class="checkout-button">Checkout</button>
+        </div>
+    </div>
 </body>
 </html>
