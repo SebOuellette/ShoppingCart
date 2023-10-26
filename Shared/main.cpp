@@ -27,7 +27,7 @@ int main()
 }
 
 string loadFile(response& res, std::string _folder, std::string _name) {
-	std::string path = "../public/" + _folder + _name;
+	std::string path = "./public/" + _folder + _name;
 
 	ifstream file(path, ifstream::in);
 
