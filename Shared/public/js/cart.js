@@ -14,4 +14,16 @@
         }
     }
 
+function getCart(userID)
+{
+    const Http = new XMLHttpRequest();
+    const url = 'http://localhost:8080/cart/0'
+    Http.open("GET", url);
+    Http.send();
+
+    Http.onreadystatechange=(e)=>{
+        console.log(Http.responseText);
+    }
+}
+
 //});
