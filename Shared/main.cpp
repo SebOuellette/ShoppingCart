@@ -40,9 +40,10 @@ int main()
 {
 	crow::SimpleApp app;
 
-	carts.insert_or_assign(0, Cart(0, 0));
-	carts.at(0).products.push_back("test product");
-
+	#ifdef DEBUG
+		carts.insert_or_assign(0, Cart(0, 0));
+		carts.at(0).products.push_back("test product");
+	#endif
 
 
 
