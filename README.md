@@ -12,6 +12,10 @@ This is the shopping cart module for CSCN73030 Lab 2.
 #### Request
 `GET`  `/profile/<profile_id>`
 
+### Link to ad Module
+#### Request
+`GET`  `/cart/<userID>`
+
 #### Response
 ```
 307: Temporary Redirect
