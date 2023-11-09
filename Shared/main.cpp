@@ -36,11 +36,10 @@ class Cart
 };
 
 
-map<int, Cart> carts;
-
 int main()
 {
 	crow::SimpleApp app;
+	map<int, Cart> carts;
 
 	#ifdef DEBUG
 		carts.insert_or_assign(0, Cart(0, 0));
