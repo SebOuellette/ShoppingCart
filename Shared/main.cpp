@@ -1,5 +1,8 @@
 #define CROW_MAIN
 
+#include <sqlite3.h>
+// Using sqlite https://www.geeksforgeeks.org/sql-using-c-c-and-sqlite/
+
 #include "crow_all.h"
 #include <regex>
 #include <iostream>
@@ -8,6 +11,11 @@ using namespace std;
 using namespace crow;
 
 // Program Defines
+#define TABLES 3
+#define DB_PATH "../cart.db" // will create cart.db in the shared folder
+
+
+// Module IP Addresses
 #define PROFILE "http://localhost:8081"
 
 // Product Defines
@@ -88,8 +96,7 @@ public:
 		if (index >= size) {
 			throw std::out_of_range("Index is out of range.");
 
-			Product emptyProd;
-			return emptyProd;
+			return _products[0]; // We will return the first element, but will throw an error
 		}
 
 		return _products[index];
@@ -107,26 +114,43 @@ public:
 
 // Function Definitions
 std::string loadFile(response& res, std::string _folder, std::string _name);
+bool isAuthorized(ID userID, const request& req);
+bool initDB(sqlite3* db);
 
 // Main Function
 int main()
 {
 	crow::SimpleApp app;
-	map<int, Cart> carts;
+	map<ID, Cart> carts;
+	sqlite3* db;
 
 	#ifdef DEBUG
 		carts.insert_or_assign(0, Cart(0, 0));
 		carts.at(0).products.push_back("test product");
 	#endif
 
+	// Let's initialize the database before accepting any requests
+
+	initDB(db);
 
 
-	CROW_ROUTE(app, "/") // Products Page
-		([](const request& req, response& res){
+	// DEBUG
+	sqlite3_close(db);
+
+
+
+	CROW_ROUTE(app, "/<int>") // Products Page
+		([](const request& req, response& res, int userID){
 			res.set_header("Content-Type", "text/html");
+
+			// Load the html file
+			string indexhtml = loadFile(res, "", "index.html");
+
+			//indexhtml = replaceItemTemplates(indexhtml);
 			
-			res.write(loadFile(res, "", "index.html"));
-			
+
+			// Write the final html to the result body
+			res.write(indexhtml);
 			res.end();
 		});
 
@@ -204,4 +228,68 @@ string loadFile(response& res, std::string _folder, std::string _name) {
 		res.code = 404;
 		return path + "Not Found";
 	}
+}
+
+// Check if a request is authorized to access the cart for some userID.
+bool isAuthorized(ID userID, const request& req) {
+	/// --- How to check for authorization ---
+		// https://crowcpp.org/master/guides/auth/
+	// Example of an authorization header entry
+	/// Authorization: Basic bXlVbmlxdWVVc2VybmFtZTpteVBhc3N3b3JkCg==
+
+	// Where...
+	/// [Authorization:]  =   The header name
+	/// [Basic ]   =   A prefix to the data, signifying the data is base64 encoded
+	/// [bXlVbmlxdWVVc2VybmFtZTpteVBhc3N3b3JkCg==]    =    "myUniqueUsername:myPassword" (without "") encoded in base64
+
+	// Get the full contents of the authorization header
+	string authHeader = req.get_header_value("Authorization");
+
+	// Remove the "Basic " keyword
+	string base64 = authHeader.substr(6);
+
+	// Decode the base64
+	string rawAuth = crow::utility::base64decode(base64, base64.size());
+
+	/// Now split the credentials into username and password
+	unsigned int split = rawAuth.find(':');
+	string username = rawAuth.substr(0, split);
+	string pass = rawAuth.substr(split+1);
+
+
+	// Now, verify that userID, username, and pass align with each other in the database
+	return false;
+
+}
+
+// Initialize the database table
+bool initDB(sqlite3* db) {
+
+	string createTables[TABLES] = {
+		"CREATE TABLE IF NOT EXISTS Users (id int NOT NULL UNIQUE, cartid int NOT NULL UNIQUE, name varchar(128) NOT NULL unique, passhash varchar(1024) NOT NULL);",
+		"CREATE TABLE IF NOT EXISTS Carts (id int NOT NULL UNIQUE, userid int NOT NULL UNIQUE);",
+		"CREATE TABLE IF NOT EXISTS Products (id int NOT NULL unique, cartid int NOT NULL, sellerid int NOT NULL, name varchar(128) NOT NULL, description varchar(4096), quantity int NOT NULL);"
+	};
+
+	// Open Database
+	int exit = sqlite3_open(DB_PATH, &db);
+
+
+	// Now attempt to run the defined queries
+	for (int i=0;i<TABLES;i++) {
+		// Run the query
+		char* errorMsg;
+		int exit = sqlite3_exec(db, createTables[i].c_str(), NULL, 0, &errorMsg);
+
+		// Check if the table was created
+		if (exit != SQLITE_OK) {
+			cerr << "Error Creating Table: " << errorMsg << endl;
+			sqlite3_free(errorMsg);
+		} else {
+			cout << "Table created/exists" << endl;
+		}
+	}
+
+	return (exit == SQLITE_OK);
+
 }
