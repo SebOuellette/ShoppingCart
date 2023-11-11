@@ -74,6 +74,18 @@ public:
 		// (If we want to just add by product id, then we would also need to search for everything first)
 	}
 
+//not sure if this actually works
+	void removeProduct(Product oldP) {
+		for (int i = 0; i <= this->productCount; i++)
+		{
+			if (oldP.id == i)
+			{
+				oldP.quantity--;
+			}
+		}
+
+	}
+
 	// Find the number of unique elements in the _products vector. Having a quantity of > 1 does not count as more than 1 element
 	int productCount() {
 		return this->_products.size();
@@ -120,15 +132,50 @@ int main()
 	#endif
 
 
-
 	CROW_ROUTE(app, "/") // Products Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "home.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/cart") // temp cart page
 		([](const request& req, response& res){
 			res.set_header("Content-Type", "text/html");
 			
-			res.write(loadFile(res, "", "index.html"));
+			res.write(loadFile(res, "", "cart.html"));
 			
 			res.end();
 		});
+			
+	CROW_ROUTE(app, "/products") // Products Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "index.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/home") // home Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "home.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/checkout") // billing Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "billing.html"));
+			
+		res.end();
+	});
 
 	CROW_ROUTE(app, "/profile/<int>")
 	.methods(HTTPMethod::GET)
@@ -180,6 +227,16 @@ int main()
 			
 			res.end();
 		});
+
+	// CROW_ROUTE(app, "/advertisement")
+	// .methods(HTTPMethod::GET)
+	// 	([](const request& req, response& res){
+
+			
+	// 		res.write(message.str());
+
+	// 		res.end();
+	// 	});
 
 
 	app.port(23500).multithreaded().run();
