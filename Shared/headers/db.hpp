@@ -79,6 +79,37 @@ public:
 		// Returns the final exit status. AKA the status of the last query
 		return (exit == SQLITE_OK);
 	}
+	//upload new products to the cart
+	bool uploadCartProducts(ID userID, ID productID) {
+        stringstream query;
+        stringstream selectQuery;
+        selectQuery<<"SELECT Carts.id FROM Carts where Carts.userid="<<userID;
+        //cout << "Running: " << query.str() << endl;
+        string cartid;
+
+        this->run(selectQuery.str(), [](void* data, int argc, char argv, char colNames){
+            // This same block of code will run for each SQL result
+            //cout << "Found: " << argc << " rows" << endl;
+
+            string cartid=(string) data;
+
+            // Loop through each row
+            for (int r=0;r<argc;r++) {
+
+                // Build a product
+                if (strcmp(colNames[r], "id") == 0) {
+                    cartid = atoi(argv[r]);
+
+            }
+            return 0;
+        }, (void)&cartid);
+
+        query << "INSERT INTO Products (Id, Cartid,sellerid,name,description, quantity,unitcost,imgurl) VALUES("<<productID<<","<<cartid<<","<<userID<<","<<"brush"<<"best brush for curly hair"<<1<<10<<"NA"<<") WHERE sellerid=" << userID <<  ";";
+        return this->run(query.str(),NULL));
+
+        // Return the list of products
+        //return products;
+    }
 
 	// Get list of products by user id
 	vector<Product> loadCartProducts(ID userID) {

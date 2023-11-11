@@ -29,7 +29,22 @@ int main()
 		carts.at(0).products.push_back("test product");
 	#endif
 
+	CROW_ROUTE(app, "/upload/<int>/<int>") // upload product to cart
+        ([](const request& req, response& res,int userID, int productID){
+            res.set_header("Content-Type", "text/html");
 
+            // Load the html file
+            string indexhtml = loadFile(res, "", "index.html");
+            bool worked=db.uploadCartProducts(userID,productID);
+            std::string pidString = std::to_string(ProductID);
+            if(worked)
+                res.code=200;
+            else
+                res.code=505;
+
+
+            res.end();
+        });
 	CROW_ROUTE(app, "/<int>") // Products Page
 		([&db](const request& req, response& res, int userID){
 
