@@ -74,7 +74,7 @@ public:
 		// (If we want to just add by product id, then we would also need to search for everything first)
 	}
 
-//not sure if this actually works
+	//not sure if this actually works
 	void removeProduct(Product oldP) {
 		for (int i = 0; i <= this->productCount; i++)
 		{
@@ -227,17 +227,6 @@ int main()
 			
 			res.end();
 		});
-
-	// CROW_ROUTE(app, "/advertisement")
-	// .methods(HTTPMethod::GET)
-	// 	([](const request& req, response& res){
-
-			
-	// 		res.write(message.str());
-
-	// 		res.end();
-	// 	});
-
 
 	app.port(23500).multithreaded().run();
 	return 1;
