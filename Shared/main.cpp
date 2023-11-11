@@ -74,18 +74,6 @@ public:
 		// (If we want to just add by product id, then we would also need to search for everything first)
 	}
 
-	//not sure if this actually works
-	void removeProduct(Product oldP) {
-		for (int i = 0; i <= this->productCount; i++)
-		{
-			if (oldP.id == i)
-			{
-				oldP.quantity--;
-			}
-		}
-
-	}
-
 	// Find the number of unique elements in the _products vector. Having a quantity of > 1 does not count as more than 1 element
 	int productCount() {
 		return this->_products.size();
@@ -227,7 +215,7 @@ int main()
 			
 			res.end();
 		});
-
+		
 	app.port(23500).multithreaded().run();
 	return 1;
 }
