@@ -81,31 +81,38 @@ public:
 	}
 	//upload new products to the cart
 	bool uploadCartProducts(ID userID, ID productID) {
+
+		// ToDO
+		// CHeck if user and cart already exist in system, if not, add them
+
         stringstream query;
         stringstream selectQuery;
         selectQuery<<"SELECT Carts.id FROM Carts where Carts.userid="<<userID;
         //cout << "Running: " << query.str() << endl;
         string cartid;
 
-        this->run(selectQuery.str(), [](void* data, int argc, char argv, char colNames){
+        this->run(selectQuery.str(), [](void* data, int argc, char* argv[], char* colNames[]){
             // This same block of code will run for each SQL result
             //cout << "Found: " << argc << " rows" << endl;
 
-            string cartid=(string) data;
+            string* cartid=(string*) data;
 
             // Loop through each row
             for (int r=0;r<argc;r++) {
 
                 // Build a product
                 if (strcmp(colNames[r], "id") == 0) {
-                    cartid = atoi(argv[r]);
+                    *cartid = argv[r];
+				}
 
             }
             return 0;
-        }, (void)&cartid);
+        }, (void*)&cartid);
 
-        query << "INSERT INTO Products (Id, Cartid,sellerid,name,description, quantity,unitcost,imgurl) VALUES("<<productID<<","<<cartid<<","<<userID<<","<<"brush"<<"best brush for curly hair"<<1<<10<<"NA"<<") WHERE sellerid=" << userID <<  ";";
-        return this->run(query.str(),NULL));
+		// TEMPORARY
+        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl) VALUES("<<to_string(productID)<<","<<cartid<<","<<to_string(userID)<<",\"waterbottle\","<<"\"Slllllurp\","<<to_string(1) << "," <<to_string(10)<<", \"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.bHj_9fdyvWQVzpFcnZsuNAHaLE%26pid%3DApi%26h%3D160&f=1&ipt=48be6108a930ac5836f25296ae183b24c6d29cb44fa61c99ee1bbb4b0d32ae20&ipo=images\""<<");";
+		cout << query.str() << endl;
+	    return this->run(query.str(),NULL);
 
         // Return the list of products
         //return products;

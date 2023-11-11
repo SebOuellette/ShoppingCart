@@ -30,13 +30,13 @@ int main()
 	#endif
 
 	CROW_ROUTE(app, "/upload/<int>/<int>") // upload product to cart
-        ([](const request& req, response& res,int userID, int productID){
+        ([&db](const request& req, response& res,int userID, int productID){
             res.set_header("Content-Type", "text/html");
 
             // Load the html file
             string indexhtml = loadFile(res, "", "index.html");
             bool worked=db.uploadCartProducts(userID,productID);
-            std::string pidString = std::to_string(ProductID);
+            std::string pidString = std::to_string(productID);
             if(worked)
                 res.code=200;
             else
