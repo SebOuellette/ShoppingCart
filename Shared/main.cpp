@@ -1,125 +1,29 @@
 #define CROW_MAIN
 
-#include "crow_all.h"
+#include "headers/db.hpp"
+#include "headers/cart.hpp"
+
 #include <regex>
 #include <iostream>
 #include <string>
 #include <chrono>
 #include <ctime>
-using namespace std;
-using namespace crow;
-
-// Program Defines
-#define PROFILE "http://localhost:8081"
-
-// Product Defines
-#define NAME_LENGTH 128
-#define DESCRIPTION_LENGTH 4096
-
-// ID variable type is an unsigned 64-bit integer
-typedef unsigned long long int ID;
-
-// Structs
-typedef struct _Product {
-	ID id;
-	ID sellerID;
-	char name[NAME_LENGTH];
-	char description[DESCRIPTION_LENGTH];
-	float price;
-
-	std::chrono::system_clock::time_point creationTime;
-
-	unsigned int quantity = 1;
-
-	// Add conversion from a product to an int
-	// We can only have one conversion method here or else errors up the wazoo
-	operator ID() const { 
-		return id;
-	}
-
-	Product() : creationTime(std::chrono::system_clock::now()) {}
-
-} Product;
-
-
-// Classes
-class Cart {
-private:
-	ID _id; // { get }
-	ID _userID; // { get }
-	vector<Product> _products; // { get, set }
-
-public:
-	Cart(ID id, ID userID)
-	{
-		this->_id = id;
-		this->_userID = userID;
-	}
-
-	void operator=(Cart c) {
-		this->_id = c.getID();
-		this->_userID = c.getUserID();
-		this->_products = c._products;
-	}
-
-	// Getters/Setters
-	ID getID() {
-		return this->_id;
-	}
-
-	ID getUserID() {
-		return this->_userID;
-	}
-
-	void addProduct(Product newP) {
-		// TODO
-		// Check if product already exists in vector
-		 /// If so, increase its quantity by newP.quantity
-
-		// If not, push product to vector
-
-		// (If we want to just add by product id, then we would also need to search for everything first)
-	}
-
-	// Find the number of unique elements in the _products vector. Having a quantity of > 1 does not count as more than 1 element
-	int productCount() {
-		return this->_products.size();
-	}
-
-	// Return a reference to the product at index index
-	Product& at(ID index) {
-		int size = this->productCount();
-
-		// Check if index is out of bounds
-		// It's an unsigned integer, so we only need to check the right side bounds
-		if (index >= size) {
-			throw std::out_of_range("Index is out of range.");
-
-			Product emptyProd;
-			return emptyProd;
-		}
-
-		return _products[index];
-	}
-
-	crow::json::wvalue toJSON()
-	{
-		crow::json::wvalue jsonObject;
-		jsonObject["id"] = this->_id;
-		jsonObject["user"] = this->_userID;
-		jsonObject["products"] = this->_products;
-		return jsonObject;
-	}
-};
 
 // Function Definitions
 std::string loadFile(response& res, std::string _folder, std::string _name);
+std::string replaceTemplates(std::string htmlString, Product newProd, const char templateStr[], std::string replacement);
+std::string replaceProductTemplates(std::string htmlString, Product newProd);
+bool isAuthorized(ID userID, const request& req);
 
 // Main Function
 int main()
 {
 	crow::SimpleApp app;
-	map<int, Cart> carts;
+	map<ID, Cart> carts;
+	// Create and initialize the database
+	DB db;
+
+	
 
 	#ifdef DEBUG
 		carts.insert_or_assign(0, Cart(0, 0));
@@ -127,21 +31,45 @@ int main()
 	#endif
 
 
-	CROW_ROUTE(app, "/") // Products Page
-	([](const request& req, response& res){
-		res.set_header("Content-Type", "text/html");
-			
-		res.write(loadFile(res, "", "home.html"));
-			
-		res.end();
-	});
+	CROW_ROUTE(app, "/<int>") // Products Page
+		([&db](const request& req, response& res, int userID){
 
-	CROW_ROUTE(app, "/cart") // temp cart page
-		([](const request& req, response& res){
 			res.set_header("Content-Type", "text/html");
+
+			// Load the html file
+			string indexhtml = loadFile(res, "", "index.html");
+
+			// This should actually be loaded directly into cart but this is for a demo/test
+			vector<Product> prods = db.loadCartProducts(userID);
+
+			// Replace item templates with items in the database
+			for (int i=0;i<prods.size();i++) {
+				stringstream replacement;
+				replacement << 
+				"<li class=\"cart-item\">"
+                	"<img src=\"" << prods[i].imgurl << "\" alt=\"" << prods[i].name << "\">"
+                	"<div class=\"cart-item-details\">"
+						"<div class=\"cart-item-details-small\">"
+                    		"<h3 class=\"cart-item-title\">" << prods[i].name << "</h3>"
+                    		"<p class=\"cart-item-price\">$" << prods[i].price << "</p>"
+                    		"<p class=\"cart-item-quantity\">Quantity: " << prods[i].quantity << "</p>"
+                		"</div>"
+						"<div class=\"cart-item-details-large\">"
+							"<p class=\"cart-item-description\">" << prods[i].description << "</p>"
+						"</div>"
+					"</div>"
+                	"<button class=\"cart-item-remove\">Remove</button>"
+           		"</li>" << PRODUCT_TEMPLATE;
+
+				indexhtml = replaceTemplates(indexhtml, prods[i], PRODUCT_TEMPLATE, replacement.str());
+			}
+
+			// TODO
+			// Calculate total and replace the TOTAL_TEMPLATE
 			
-			res.write(loadFile(res, "", "cart.html"));
-			
+			// Write the final html to the result body
+			res.write(indexhtml);
+
 			res.end();
 		});
 			
@@ -245,4 +173,82 @@ string loadFile(response& res, std::string _folder, std::string _name) {
 		res.code = 404;
 		return path + "Not Found";
 	}
+}
+
+std::string replaceTemplates(std::string htmlString, Product newProd, const char templateStr[], std::string replacement) {
+	const int templateSize = strlen(templateStr);
+
+	// Find the location of the first occurance of the product template
+	size_t loc = htmlString.find(templateStr);
+
+	// Split the html in two, using the product template as a delimeter
+	std::string before = htmlString.substr(0, loc);
+	std::string after = htmlString.substr(loc + templateSize);
+
+
+	// Build the final result
+	stringstream result;
+	// Prefix the before string, then add our new code, then the rest of the html
+	result << before << replacement << after;
+
+	return result.str();
+}
+
+std::string replaceProductTemplates(std::string htmlString, Product newProd) {
+	stringstream replacement;
+	replacement << "<li class=\"product\">"
+                "<img src=\"" << newProd.imgurl << "\" alt=\"" << newProd.name << "\">"
+                "<div class=\"product-details\">"
+					"<div class=\"product-details-small\">"
+                    	"<h3 class=\"product-title\">" << newProd.name << "</h3>"
+                    	"<p class=\"product-price\">$" << newProd.price << "</p>"
+                    	"<p class=\"product-quantity\">Quantity: " << newProd.quantity << "</p>"
+                	"</div>"
+					"<div class=\"product-details-large\">"
+						"<p class=\"product-description\">" << newProd.description << "</p>"
+					"</div>"
+				"</div>"
+                "<button class=\"product-remove\">Remove</button>"
+           "</li>" << PRODUCT_TEMPLATE;
+
+	return replaceTemplates(htmlString, newProd, PRODUCT_TEMPLATE, replacement.str());
+}
+
+
+// Check if a request is authorized to access the cart for some userID.
+bool isAuthorized(ID userID, const request& req) {
+	/// --- How to check for authorization ---
+		// https://crowcpp.org/master/guides/auth/
+	// Example of an authorization header entry
+	/// Authorization: Basic bXlVbmlxdWVVc2VybmFtZTpteVBhc3N3b3JkCg==
+
+	// Where...
+	/// [Authorization:]  =   The header name
+	/// [Basic ]   =   A prefix to the data, signifying the data is base64 encoded
+	/// [bXlVbmlxdWVVc2VybmFtZTpteVBhc3N3b3JkCg==]    =    "myUniqueUsername:myPassword" (without "") encoded in base64
+
+	// Get the full contents of the authorization header
+	string authHeader = req.get_header_value("Authorization");
+	// WHat if we weren't given a header?
+
+	// Remove the "Basic " keyword
+	string base64 = authHeader.substr(6);
+	// What if the data length is less than 6?
+
+	// Decode the base64
+	string rawAuth = crow::utility::base64decode(base64, base64.size());
+	// What if we weren't given valid base64???
+
+	/// Now split the credentials into username and password
+	unsigned int split = rawAuth.find(':');
+	string username = rawAuth.substr(0, split);
+	string pass = rawAuth.substr(split+1);
+
+
+	// Now, verify that userID, username, and pass align with each other in the database
+
+
+	// Debug return false always
+	return false;
+
 }
