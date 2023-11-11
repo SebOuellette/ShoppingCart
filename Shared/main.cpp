@@ -4,6 +4,8 @@
 #include <regex>
 #include <iostream>
 #include <string>
+#include <chrono>
+#include <ctime>
 using namespace std;
 using namespace crow;
 
@@ -25,6 +27,8 @@ typedef struct _Product {
 	char description[DESCRIPTION_LENGTH];
 	float price;
 
+	std::chrono::system_clock::time_point creationTime;
+
 	unsigned int quantity = 1;
 
 	// Add conversion from a product to an int
@@ -32,6 +36,9 @@ typedef struct _Product {
 	operator ID() const { 
 		return id;
 	}
+
+	Product() : creationTime(std::chrono::system_clock::now()) {}
+
 } Product;
 
 
