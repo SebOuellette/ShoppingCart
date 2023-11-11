@@ -31,7 +31,7 @@ public:
 	// General purpose query. You can use a labmda function as the second argument
 	// The lambda function parameters are (void* data, int argc, char** argv, char** columnNames)
 	//			The lambda function is what this \/ \/ \/ \/ \/ mess is about
-	bool run(string queryString, int(*callback)(void*, int, char**, char**), void* data = NULL) {
+	bool run(string queryString, int(*callback)(void*, int, char**, char**) = NULL, void* data = NULL) {
 		char* errorMsg;
 		
 		// Perform the query

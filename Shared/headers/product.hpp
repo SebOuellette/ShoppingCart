@@ -2,6 +2,8 @@
 #define PRODUCT_HPP
 
 #include "defines.hpp"
+#include <chrono>
+#include <ctime>
 
 typedef struct _Product {
 	ID id;
@@ -11,6 +13,8 @@ typedef struct _Product {
     char imgurl[URL_LENGTH];
 	double price;
 	unsigned int quantity = 1;
+
+
 
 	// Add conversion from a product to an int
 	// We can only have one conversion method here or else errors up the wazoo

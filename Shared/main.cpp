@@ -6,8 +6,7 @@
 #include <regex>
 #include <iostream>
 #include <string>
-#include <chrono>
-#include <ctime>
+
 
 // Function Definitions
 std::string loadFile(response& res, std::string _folder, std::string _name);
@@ -46,19 +45,19 @@ int main()
 			for (int i=0;i<prods.size();i++) {
 				stringstream replacement;
 				replacement << 
-				"<li class=\"cart-item\">"
+				"<li class=\"product\">"
                 	"<img src=\"" << prods[i].imgurl << "\" alt=\"" << prods[i].name << "\">"
-                	"<div class=\"cart-item-details\">"
-						"<div class=\"cart-item-details-small\">"
-                    		"<h3 class=\"cart-item-title\">" << prods[i].name << "</h3>"
-                    		"<p class=\"cart-item-price\">$" << prods[i].price << "</p>"
-                    		"<p class=\"cart-item-quantity\">Quantity: " << prods[i].quantity << "</p>"
+                	"<div class=\"product-details\">"
+						"<div class=\"product-details-small\">"
+                    		"<h3 class=\"product-title\">" << prods[i].name << "</h3>"
+                    		"<p class=\"product-price\">$" << prods[i].price << "</p>"
+                    		"<p class=\"product-quantity\">Quantity: " << prods[i].quantity << "</p>"
                 		"</div>"
-						"<div class=\"cart-item-details-large\">"
-							"<p class=\"cart-item-description\">" << prods[i].description << "</p>"
+						"<div class=\"product-details-large\">"
+							"<p class=\"product-description\">" << prods[i].description << "</p>"
 						"</div>"
 					"</div>"
-                	"<button class=\"cart-item-remove\">Remove</button>"
+                	"<button class=\"product-remove\">Remove</button>"
            		"</li>" << PRODUCT_TEMPLATE;
 
 				indexhtml = replaceTemplates(indexhtml, prods[i], PRODUCT_TEMPLATE, replacement.str());

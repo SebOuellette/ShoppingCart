@@ -8,6 +8,11 @@ This is the shopping cart module for CSCN73030 Lab 2.
 `<hello>` -- Text surrounded by <> is a variable. Do not include <> when using the API.<br>
 `?foobar?` -- Text surrounded by ?? is content that is to be decided later in development. 
 
+
+### Open User's Cart
+### Request
+`GET` `/<profile_id>`
+
 ### Link to Profile Module
 #### Request
 `GET`  `/profile/<profile_id>`
@@ -24,5 +29,6 @@ Redirecting to profile page for user: '<profile_id>' at http://<profile_module_A
 ### Link to ad Module
 #### Request
 `GET`  `/cart/<userID>`
+
 
 
