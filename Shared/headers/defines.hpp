@@ -18,11 +18,12 @@ using namespace std;
 #define NAME_LENGTH 128
 #define PASSWD_HASH_LENGTH 1024
 #define DESCRIPTION_LENGTH 4096
+#define URL_LENGTH 512
 
 // ID variable type is an unsigned 64-bit integer
 typedef unsigned long long int ID;
 
 // HTML templates. Used for adding dynamically generated content to the html pages from server-side
-#define PRODUCT_TEMPLATE ""
+#define PRODUCT_TEMPLATE "<!--[[NEXT-CART-ITEM]]-->"
 
 #endif

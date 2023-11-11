@@ -57,7 +57,7 @@ public:
 		string createTables[TABLES] = {
 			"CREATE TABLE IF NOT EXISTS Users (id int NOT NULL UNIQUE, cartid int NOT NULL UNIQUE, name varchar(128) NOT NULL unique, passhash varchar(1024) NOT NULL);",
 			"CREATE TABLE IF NOT EXISTS Carts (id int NOT NULL UNIQUE, userid int NOT NULL UNIQUE);",
-			"CREATE TABLE IF NOT EXISTS Products (id int NOT NULL unique, cartid int NOT NULL, sellerid int NOT NULL, name varchar(128) NOT NULL, description varchar(4096), quantity int NOT NULL, unitcost double NOT NULL);"
+			"CREATE TABLE IF NOT EXISTS Products (id int NOT NULL unique, cartid int NOT NULL, sellerid int NOT NULL, name varchar(128) NOT NULL, description varchar(4096) NOT NULL, quantity int NOT NULL, unitcost double NOT NULL, imgurl varchar(512) NOT NULL);"
 		};
 
 		// Open Database
@@ -84,13 +84,13 @@ public:
 	vector<Product> loadCartProducts(ID userID) {
 		stringstream query;
 		query << "SELECT Products.*, Users.id as userid FROM Products INNER JOIN Carts ON Carts.id=Products.cartid INNER JOIN Users ON Users.id=Carts.userid WHERE Users.id=" << userID <<  ";";
-		cout << "Running: " << query.str() << endl;
+		//cout << "Running: " << query.str() << endl;
 
 		vector<Product> products;
 
 		this->run(query.str(), [](void* data, int argc, char** argv, char** colNames){
 			// This same block of code will run for each SQL result
-			cout << "Found: " << argc << " rows" << endl;
+			//cout << "Found: " << argc << " rows" << endl;
 
 			vector<Product>* products = (vector<Product>*)data;
 
@@ -105,11 +105,14 @@ public:
 				} else if (strcmp(colNames[r], "sellerid") == 0) {
 					p.sellerID = atoi(argv[r]);
 				} else if (strcmp(colNames[r], "name") == 0) {
-					int length = strlen(argv[r]);
+					int length = strlen(argv[r]) + 1;
 					strncpy(p.name, argv[r], length);
 				} else if (strcmp(colNames[r], "description") == 0) {
-					int length = strlen(argv[r]);
+					int length = strlen(argv[r]) + 1;
 					strncpy(p.description, argv[r], length);
+				} else if (strcmp(colNames[r], "imgurl") == 0) {
+					int length = strlen(argv[r]);
+					strncpy(p.imgurl, argv[r], length);
 				} else if (strcmp(colNames[r], "quantity") == 0) {
 					p.quantity = atoi(argv[r]);
 				} else if (strcmp(colNames[r], "unitcost") == 0) {

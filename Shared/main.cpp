@@ -39,9 +39,9 @@ int main()
 			vector<Product> prods = db.loadCartProducts(userID);
 
 			// Replace item templates with items in the database
-			// for (int i=0;i<prods.size();i++) {
-			// 	indexhtml = replaceProductTemplates(indexhtml, prods[i]);
-			// }
+			for (int i=0;i<prods.size();i++) {
+				indexhtml = replaceProductTemplates(indexhtml, prods[i]);
+			}
 			
 
 			// Write the final html to the result body
@@ -126,7 +126,43 @@ string loadFile(response& res, std::string _folder, std::string _name) {
 }
 
 std::string replaceProductTemplates(std::string htmlString, Product newProd) {
-	return "";
+	const int templateSize = strlen(PRODUCT_TEMPLATE);
+
+	// Find the location of the first occurance of the product template
+	size_t loc = htmlString.find(PRODUCT_TEMPLATE);
+
+	// Split the html in two, using the product template as a delimeter
+	std::string before = htmlString.substr(0, loc);
+	std::string after = htmlString.substr(loc + templateSize);
+
+
+	// Build a new product html object
+	stringstream code;
+	code << "<li class=\"cart-item\">"
+                "<img src=\"" << newProd.imgurl << "\" alt=\"" << newProd.name << "\">"
+                "<div class=\"cart-item-details\">"
+					"<div class=\"cart-item-details-small\">"
+                    	"<h3 class=\"cart-item-title\">" << newProd.name << "</h3>"
+                    	"<p class=\"cart-item-price\">$" << newProd.price << "</p>"
+                    	"<p class=\"cart-item-quantity\">Quantity: " << newProd.quantity << "</p>"
+                	"</div>"
+					"<div class=\"cart-item-details-large\">"
+						"<p class=\"cart-item-description\">" << newProd.description << "</p>"
+					"</div>"
+				"</div>"
+                "<button class=\"cart-item-remove\">Remove</button>"
+           "</li>";
+
+
+	// Replace the template with the code block
+	//htmlString.replace(htmlString.begin(), htmlString.begin()+loc, code.str());
+
+	// Build the final result
+	stringstream result;
+	// Prefix the before string, then add our new code, then the product template again so we can do this al lagain, then the rest of the html
+	result << before << code.str() << PRODUCT_TEMPLATE << after;
+
+	return result.str();
 }
 
 // Check if a request is authorized to access the cart for some userID.

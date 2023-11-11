@@ -8,6 +8,7 @@ typedef struct _Product {
 	ID sellerID;
 	char name[NAME_LENGTH];
 	char description[DESCRIPTION_LENGTH];
+    char imgurl[URL_LENGTH];
 	double price;
 	unsigned int quantity = 1;
 
