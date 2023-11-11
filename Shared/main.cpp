@@ -9,6 +9,7 @@
 
 // Function Definitions
 std::string loadFile(response& res, std::string _folder, std::string _name);
+std::string replaceTemplates(std::string htmlString, Product newProd, const char templateStr[], std::string replacement);
 std::string replaceProductTemplates(std::string htmlString, Product newProd);
 bool isAuthorized(ID userID, const request& req);
 
@@ -40,8 +41,28 @@ int main()
 
 			// Replace item templates with items in the database
 			for (int i=0;i<prods.size();i++) {
-				indexhtml = replaceProductTemplates(indexhtml, prods[i]);
+				stringstream replacement;
+				replacement << 
+				"<li class=\"cart-item\">"
+                	"<img src=\"" << prods[i].imgurl << "\" alt=\"" << prods[i].name << "\">"
+                	"<div class=\"cart-item-details\">"
+						"<div class=\"cart-item-details-small\">"
+                    		"<h3 class=\"cart-item-title\">" << prods[i].name << "</h3>"
+                    		"<p class=\"cart-item-price\">$" << prods[i].price << "</p>"
+                    		"<p class=\"cart-item-quantity\">Quantity: " << prods[i].quantity << "</p>"
+                		"</div>"
+						"<div class=\"cart-item-details-large\">"
+							"<p class=\"cart-item-description\">" << prods[i].description << "</p>"
+						"</div>"
+					"</div>"
+                	"<button class=\"cart-item-remove\">Remove</button>"
+           		"</li>" << PRODUCT_TEMPLATE;
+
+				indexhtml = replaceTemplates(indexhtml, prods[i], PRODUCT_TEMPLATE, replacement.str());
 			}
+
+			// TODO
+			// Calculate total and replace the TOTAL_TEMPLATE
 			
 
 			// Write the final html to the result body
@@ -125,20 +146,28 @@ string loadFile(response& res, std::string _folder, std::string _name) {
 	}
 }
 
-std::string replaceProductTemplates(std::string htmlString, Product newProd) {
-	const int templateSize = strlen(PRODUCT_TEMPLATE);
+std::string replaceTemplates(std::string htmlString, Product newProd, const char templateStr[], std::string replacement) {
+	const int templateSize = strlen(templateStr);
 
 	// Find the location of the first occurance of the product template
-	size_t loc = htmlString.find(PRODUCT_TEMPLATE);
+	size_t loc = htmlString.find(templateStr);
 
 	// Split the html in two, using the product template as a delimeter
 	std::string before = htmlString.substr(0, loc);
 	std::string after = htmlString.substr(loc + templateSize);
 
 
-	// Build a new product html object
-	stringstream code;
-	code << "<li class=\"cart-item\">"
+	// Build the final result
+	stringstream result;
+	// Prefix the before string, then add our new code, then the rest of the html
+	result << before << replacement << after;
+
+	return result.str();
+}
+
+std::string replaceProductTemplates(std::string htmlString, Product newProd) {
+	stringstream replacement;
+	replacement << "<li class=\"cart-item\">"
                 "<img src=\"" << newProd.imgurl << "\" alt=\"" << newProd.name << "\">"
                 "<div class=\"cart-item-details\">"
 					"<div class=\"cart-item-details-small\">"
@@ -151,19 +180,11 @@ std::string replaceProductTemplates(std::string htmlString, Product newProd) {
 					"</div>"
 				"</div>"
                 "<button class=\"cart-item-remove\">Remove</button>"
-           "</li>";
+           "</li>" << PRODUCT_TEMPLATE;
 
-
-	// Replace the template with the code block
-	//htmlString.replace(htmlString.begin(), htmlString.begin()+loc, code.str());
-
-	// Build the final result
-	stringstream result;
-	// Prefix the before string, then add our new code, then the product template again so we can do this al lagain, then the rest of the html
-	result << before << code.str() << PRODUCT_TEMPLATE << after;
-
-	return result.str();
+	return replaceTemplates(htmlString, newProd, PRODUCT_TEMPLATE, replacement.str());
 }
+
 
 // Check if a request is authorized to access the cart for some userID.
 bool isAuthorized(ID userID, const request& req) {

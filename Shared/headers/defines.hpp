@@ -25,5 +25,6 @@ typedef unsigned long long int ID;
 
 // HTML templates. Used for adding dynamically generated content to the html pages from server-side
 #define PRODUCT_TEMPLATE "<!--[[NEXT-CART-ITEM]]-->"
+#define TOTAL_COST_TEMPLATE "[[TOTAL_COST]]"
 
 #endif
