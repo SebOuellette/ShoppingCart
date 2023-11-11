@@ -127,15 +127,50 @@ int main()
 	#endif
 
 
-
 	CROW_ROUTE(app, "/") // Products Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "home.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/cart") // temp cart page
 		([](const request& req, response& res){
 			res.set_header("Content-Type", "text/html");
 			
-			res.write(loadFile(res, "", "index.html"));
+			res.write(loadFile(res, "", "cart.html"));
 			
 			res.end();
 		});
+			
+	CROW_ROUTE(app, "/products") // Products Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "index.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/home") // home Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "home.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/checkout") // billing Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "billing.html"));
+			
+		res.end();
+	});
 
 	CROW_ROUTE(app, "/profile/<int>")
 	.methods(HTTPMethod::GET)
@@ -187,8 +222,7 @@ int main()
 			
 			res.end();
 		});
-
-
+		
 	app.port(23500).multithreaded().run();
 	return 1;
 }
