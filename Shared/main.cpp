@@ -3,44 +3,116 @@
 #include "crow_all.h"
 #include <regex>
 #include <iostream>
+#include <string>
 using namespace std;
 using namespace crow;
 
+// Program Defines
 #define PROFILE "http://localhost:8081"
 
-std::string loadFile(response& res, std::string _folder, std::string _name);
+// Product Defines
+#define NAME_LENGTH 128
+#define DESCRIPTION_LENGTH 4096
+
+// ID variable type is an unsigned 64-bit integer
+typedef unsigned long long int ID;
+
+// Structs
+typedef struct _Product {
+	ID id;
+	ID sellerID;
+	char name[NAME_LENGTH];
+	char description[DESCRIPTION_LENGTH];
+	float price;
+
+	unsigned int quantity = 1;
+
+	// Add conversion from a product to an int
+	// We can only have one conversion method here or else errors up the wazoo
+	operator ID() const { 
+		return id;
+	}
+} Product;
 
 
+// Classes
+class Cart {
+private:
+	ID _id; // { get }
+	ID _userID; // { get }
+	vector<Product> _products; // { get, set }
 
-class Cart
-{
-	public:
-	int id;
-	int user;
-	vector<string> products;
-
-	Cart(int id, int userID)
+public:
+	Cart(ID id, ID userID)
 	{
-		this->id = id;
-		this->user = userID;
+		this->_id = id;
+		this->_userID = userID;
+	}
+
+	void operator=(Cart c) {
+		this->_id = c.getID();
+		this->_userID = c.getUserID();
+		this->_products = c._products;
+	}
+
+	// Getters/Setters
+	ID getID() {
+		return this->_id;
+	}
+
+	ID getUserID() {
+		return this->_userID;
+	}
+
+	void addProduct(Product newP) {
+		// TODO
+		// Check if product already exists in vector
+		 /// If so, increase its quantity by newP.quantity
+
+		// If not, push product to vector
+
+		// (If we want to just add by product id, then we would also need to search for everything first)
+	}
+
+	// Find the number of unique elements in the _products vector. Having a quantity of > 1 does not count as more than 1 element
+	int productCount() {
+		return this->_products.size();
+	}
+
+	// Return a reference to the product at index index
+	Product& at(ID index) {
+		int size = this->productCount();
+
+		// Check if index is out of bounds
+		// It's an unsigned integer, so we only need to check the right side bounds
+		if (index >= size) {
+			throw std::out_of_range("Index is out of range.");
+
+			Product emptyProd;
+			return emptyProd;
+		}
+
+		return _products[index];
 	}
 
 	crow::json::wvalue toJSON()
 	{
 		crow::json::wvalue jsonObject;
-		jsonObject["id"] = this->id;
-		jsonObject["user"] = this->user;
-		jsonObject["products"] = this->products;
+		jsonObject["id"] = this->_id;
+		jsonObject["user"] = this->_userID;
+		jsonObject["products"] = this->_products;
 		return jsonObject;
 	}
 };
 
+// Function Definitions
+std::string loadFile(response& res, std::string _folder, std::string _name);
 
-map<int, Cart> carts;
-
+// Main Function
 int main()
 {
 	crow::SimpleApp app;
+	map<int, Cart> carts;
 
 	#ifdef DEBUG
 		carts.insert_or_assign(0, Cart(0, 0));
@@ -94,7 +166,7 @@ int main()
 		});
 
 	CROW_ROUTE(app, "/cart/<int>") 
-		([](response& res, int user){
+		([&carts](response& res, int user){
 			if(carts.contains(user))
 			{
 				Cart cart = carts.at(user);
@@ -114,6 +186,8 @@ int main()
 	return 1;
 }
 
+
+// Function Definitions
 string loadFile(response& res, std::string _folder, std::string _name) {
 	std::string path = "/Shared/public/" + _folder + _name;
 
