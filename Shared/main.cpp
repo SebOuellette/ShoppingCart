@@ -6,6 +6,8 @@
 #include <regex>
 #include <iostream>
 #include <string>
+#include <chrono>
+#include <ctime>
 
 // Function Definitions
 std::string loadFile(response& res, std::string _folder, std::string _name);
@@ -31,6 +33,7 @@ int main()
 
 	CROW_ROUTE(app, "/<int>") // Products Page
 		([&db](const request& req, response& res, int userID){
+
 			res.set_header("Content-Type", "text/html");
 
 			// Load the html file
@@ -64,11 +67,38 @@ int main()
 			// TODO
 			// Calculate total and replace the TOTAL_TEMPLATE
 			
-
 			// Write the final html to the result body
 			res.write(indexhtml);
+
 			res.end();
 		});
+			
+	CROW_ROUTE(app, "/products") // Products Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "index.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/home") // home Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "home.html"));
+			
+		res.end();
+	});
+
+	CROW_ROUTE(app, "/checkout") // billing Page
+	([](const request& req, response& res){
+		res.set_header("Content-Type", "text/html");
+			
+		res.write(loadFile(res, "", "billing.html"));
+			
+		res.end();
+	});
 
 	CROW_ROUTE(app, "/profile/<int>")
 	.methods(HTTPMethod::GET)
@@ -120,8 +150,7 @@ int main()
 			
 			res.end();
 		});
-
-
+		
 	app.port(23500).multithreaded().run();
 	return 1;
 }
@@ -167,19 +196,19 @@ std::string replaceTemplates(std::string htmlString, Product newProd, const char
 
 std::string replaceProductTemplates(std::string htmlString, Product newProd) {
 	stringstream replacement;
-	replacement << "<li class=\"cart-item\">"
+	replacement << "<li class=\"product\">"
                 "<img src=\"" << newProd.imgurl << "\" alt=\"" << newProd.name << "\">"
-                "<div class=\"cart-item-details\">"
-					"<div class=\"cart-item-details-small\">"
-                    	"<h3 class=\"cart-item-title\">" << newProd.name << "</h3>"
-                    	"<p class=\"cart-item-price\">$" << newProd.price << "</p>"
-                    	"<p class=\"cart-item-quantity\">Quantity: " << newProd.quantity << "</p>"
+                "<div class=\"product-details\">"
+					"<div class=\"product-details-small\">"
+                    	"<h3 class=\"product-title\">" << newProd.name << "</h3>"
+                    	"<p class=\"product-price\">$" << newProd.price << "</p>"
+                    	"<p class=\"product-quantity\">Quantity: " << newProd.quantity << "</p>"
                 	"</div>"
-					"<div class=\"cart-item-details-large\">"
-						"<p class=\"cart-item-description\">" << newProd.description << "</p>"
+					"<div class=\"product-details-large\">"
+						"<p class=\"product-description\">" << newProd.description << "</p>"
 					"</div>"
 				"</div>"
-                "<button class=\"cart-item-remove\">Remove</button>"
+                "<button class=\"product-remove\">Remove</button>"
            "</li>" << PRODUCT_TEMPLATE;
 
 	return replaceTemplates(htmlString, newProd, PRODUCT_TEMPLATE, replacement.str());
