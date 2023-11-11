@@ -1,152 +1,47 @@
 #define CROW_MAIN
 
-#include <sqlite3.h>
-// Using sqlite https://www.geeksforgeeks.org/sql-using-c-c-and-sqlite/
+#include "headers/db.hpp"
+#include "headers/cart.hpp"
 
-#include "crow_all.h"
 #include <regex>
 #include <iostream>
 #include <string>
-using namespace std;
-using namespace crow;
-
-// Program Defines
-#define TABLES 3
-#define DB_PATH "../cart.db" // will create cart.db in the shared folder
-
-
-// Module IP Addresses
-#define PROFILE "http://localhost:8081"
-
-// Product Defines
-#define NAME_LENGTH 128
-#define DESCRIPTION_LENGTH 4096
-
-// ID variable type is an unsigned 64-bit integer
-typedef unsigned long long int ID;
-
-// Structs
-typedef struct _Product {
-	ID id;
-	ID sellerID;
-	char name[NAME_LENGTH];
-	char description[DESCRIPTION_LENGTH];
-	float price;
-
-	unsigned int quantity = 1;
-
-	// Add conversion from a product to an int
-	// We can only have one conversion method here or else errors up the wazoo
-	operator ID() const { 
-		return id;
-	}
-} Product;
-
-
-// Classes
-class Cart {
-private:
-	ID _id; // { get }
-	ID _userID; // { get }
-	vector<Product> _products; // { get, set }
-
-public:
-	Cart(ID id, ID userID)
-	{
-		this->_id = id;
-		this->_userID = userID;
-	}
-
-	void operator=(Cart c) {
-		this->_id = c.getID();
-		this->_userID = c.getUserID();
-		this->_products = c._products;
-	}
-
-	// Getters/Setters
-	ID getID() {
-		return this->_id;
-	}
-
-	ID getUserID() {
-		return this->_userID;
-	}
-
-	void addProduct(Product newP) {
-		// TODO
-		// Check if product already exists in vector
-		 /// If so, increase its quantity by newP.quantity
-
-		// If not, push product to vector
-
-		// (If we want to just add by product id, then we would also need to search for everything first)
-	}
-
-	// Find the number of unique elements in the _products vector. Having a quantity of > 1 does not count as more than 1 element
-	int productCount() {
-		return this->_products.size();
-	}
-
-	// Return a reference to the product at index index
-	Product& at(ID index) {
-		int size = this->productCount();
-
-		// Check if index is out of bounds
-		// It's an unsigned integer, so we only need to check the right side bounds
-		if (index >= size) {
-			throw std::out_of_range("Index is out of range.");
-
-			return _products[0]; // We will return the first element, but will throw an error
-		}
-
-		return _products[index];
-	}
-
-	crow::json::wvalue toJSON()
-	{
-		crow::json::wvalue jsonObject;
-		jsonObject["id"] = this->_id;
-		jsonObject["user"] = this->_userID;
-		jsonObject["products"] = this->_products;
-		return jsonObject;
-	}
-};
 
 // Function Definitions
 std::string loadFile(response& res, std::string _folder, std::string _name);
+std::string replaceProductTemplates(std::string htmlString, Product newProd);
 bool isAuthorized(ID userID, const request& req);
-bool initDB(sqlite3* db);
 
 // Main Function
 int main()
 {
 	crow::SimpleApp app;
 	map<ID, Cart> carts;
-	sqlite3* db;
+	// Create and initialize the database
+	DB db;
+
+	
 
 	#ifdef DEBUG
 		carts.insert_or_assign(0, Cart(0, 0));
 		carts.at(0).products.push_back("test product");
 	#endif
 
-	// Let's initialize the database before accepting any requests
-
-	initDB(db);
-
-
-	// DEBUG
-	sqlite3_close(db);
-
-
 
 	CROW_ROUTE(app, "/<int>") // Products Page
-		([](const request& req, response& res, int userID){
+		([&db](const request& req, response& res, int userID){
 			res.set_header("Content-Type", "text/html");
 
 			// Load the html file
 			string indexhtml = loadFile(res, "", "index.html");
 
-			//indexhtml = replaceItemTemplates(indexhtml);
+			// This should actually be loaded directly into cart but this is for a demo/test
+			vector<Product> prods = db.loadCartProducts(userID);
+
+			// Replace item templates with items in the database
+			// for (int i=0;i<prods.size();i++) {
+			// 	indexhtml = replaceProductTemplates(indexhtml, prods[i]);
+			// }
 			
 
 			// Write the final html to the result body
@@ -230,6 +125,10 @@ string loadFile(response& res, std::string _folder, std::string _name) {
 	}
 }
 
+std::string replaceProductTemplates(std::string htmlString, Product newProd) {
+	return "";
+}
+
 // Check if a request is authorized to access the cart for some userID.
 bool isAuthorized(ID userID, const request& req) {
 	/// --- How to check for authorization ---
@@ -244,12 +143,15 @@ bool isAuthorized(ID userID, const request& req) {
 
 	// Get the full contents of the authorization header
 	string authHeader = req.get_header_value("Authorization");
+	// WHat if we weren't given a header?
 
 	// Remove the "Basic " keyword
 	string base64 = authHeader.substr(6);
+	// What if the data length is less than 6?
 
 	// Decode the base64
 	string rawAuth = crow::utility::base64decode(base64, base64.size());
+	// What if we weren't given valid base64???
 
 	/// Now split the credentials into username and password
 	unsigned int split = rawAuth.find(':');
@@ -258,38 +160,9 @@ bool isAuthorized(ID userID, const request& req) {
 
 
 	// Now, verify that userID, username, and pass align with each other in the database
+
+
+	// Debug return false always
 	return false;
-
-}
-
-// Initialize the database table
-bool initDB(sqlite3* db) {
-
-	string createTables[TABLES] = {
-		"CREATE TABLE IF NOT EXISTS Users (id int NOT NULL UNIQUE, cartid int NOT NULL UNIQUE, name varchar(128) NOT NULL unique, passhash varchar(1024) NOT NULL);",
-		"CREATE TABLE IF NOT EXISTS Carts (id int NOT NULL UNIQUE, userid int NOT NULL UNIQUE);",
-		"CREATE TABLE IF NOT EXISTS Products (id int NOT NULL unique, cartid int NOT NULL, sellerid int NOT NULL, name varchar(128) NOT NULL, description varchar(4096), quantity int NOT NULL);"
-	};
-
-	// Open Database
-	int exit = sqlite3_open(DB_PATH, &db);
-
-
-	// Now attempt to run the defined queries
-	for (int i=0;i<TABLES;i++) {
-		// Run the query
-		char* errorMsg;
-		int exit = sqlite3_exec(db, createTables[i].c_str(), NULL, 0, &errorMsg);
-
-		// Check if the table was created
-		if (exit != SQLITE_OK) {
-			cerr << "Error Creating Table: " << errorMsg << endl;
-			sqlite3_free(errorMsg);
-		} else {
-			cout << "Table created/exists" << endl;
-		}
-	}
-
-	return (exit == SQLITE_OK);
 
 }
