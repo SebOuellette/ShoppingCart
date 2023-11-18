@@ -98,9 +98,16 @@ public:
 
     // Example: "Post request to google. We are authorizing with our token aksdfj, setting the context type to normal text, and sending the word meatballs"
     // res_t res = HTTP.request("https://google.com/", "POST", {"Authorization: Bearer aksdfj", "Context-type: text/plain"}, "meatballs");
+    // res.code   is the statuscode
+    // res.body   is the body in an std::string
 
-    // res.code is the statuscode
-    // res.body is the body in an std::string
+
+    // Example: "Simple get request"
+    // res_t res = HTTP.request("https://google.com/");
+
+
+    // Example: "Simple get request with headers"
+    // res_t res = HTTP.request("https://google.com/", "GET", {"Authorization: Bearer asdf"});
 
 
 
