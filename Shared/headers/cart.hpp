@@ -70,8 +70,8 @@ public:
 	crow::json::wvalue toJSON()
 	{
 		crow::json::wvalue jsonObject;
-		jsonObject["id"] = this->_id;
-		jsonObject["user"] = this->_userID;
+		jsonObject["cartid"] = this->_id;
+		jsonObject["customerid"] = this->_userID;
 		jsonObject["products"] = this->_products;
 		return jsonObject;
 	}

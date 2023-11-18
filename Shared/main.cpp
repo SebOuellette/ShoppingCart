@@ -29,7 +29,7 @@ int main()
 		carts.at(0).products.push_back("test product");
 	#endif
 
-	CROW_ROUTE(app, "/upload/<int>/<int>") // upload product to cart
+	CROW_ROUTE(app, "/api/upload/<int>/<int>") // upload product to cart
         ([&db](const request& req, response& res,int userID, int productID){
             res.set_header("Content-Type", "text/html");
 

@@ -1,6 +1,8 @@
 #ifndef DEFINES_HPP
 #define DEFINES_HPP
 
+#include "curl/curl.h"
+
 #include "crow_all.h"
 using namespace crow;
 using namespace std;
@@ -8,7 +10,7 @@ using namespace std;
 
 // Program Defines
 #define TABLES 3
-#define DB_PATH "../cart.db" // will create cart.db in the shared folder
+#define DB_PATH "/Shared/cart.db" // will create cart.db in the shared folder
 
 
 // Module IP Addresses
