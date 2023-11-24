@@ -31,17 +31,29 @@ int main()
 		carts.at(0).products.push_back("test product");
 	#endif
 
-	CROW_ROUTE(app, "/api/upload/<int>/<int>") // upload product to cart
+	CROW_ROUTE(app, "/api/upload/<int>") // upload product to cart
 	.methods(HTTPMethod::POST, HTTPMethod::PUT)
-        ([&db](const request& req, response& res,int userID, int productID){
+        ([&db](const request& req, response& res,int userID){
             res.set_header("Content-Type", "text/html");
 
 			// TODO Send request to product team asking for product info
 			//   OR read request body for product info
 
+			const crow::json::rvalue& parsed = crow::json::load(req.body);
+
+			Product_s p;
+
+			p.id = parsed["id"].i();
+			p.sellerID = parsed["sellerid"].i();
+			p.name = parsed["name"].s();
+			p.description = parsed["description"].s();
+			p.imgurl = parsed["imgurl"].s();
+			p.price = parsed["cost"].d();
+			p.quantity = 1;
+
             // Load the html file
             string indexhtml = loadFile(res, "", "index.html");
-            bool worked=db.uploadCartProducts(userID,productID);
+            bool worked=db.uploadCartProducts(userID,p);
 
             if(worked)
                 res.code=200;

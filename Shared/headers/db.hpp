@@ -80,7 +80,7 @@ public:
 		return (exit == SQLITE_OK);
 	}
 	//upload new products to the cart
-	bool uploadCartProducts(ID userID, ID productID) {
+	bool uploadCartProducts(ID userID, Product_s p) {
 
 		// ToDO
 		// CHeck if user and cart already exist in system, if not, add them
@@ -110,7 +110,7 @@ public:
         }, (void*)&cartid);
 
 		// TEMPORARY
-        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl) VALUES("<<to_string(productID)<<","<<cartid<<","<<to_string(userID)<<",\"waterbottle\","<<"\"Slllllurp\","<<to_string(1) << "," <<to_string(10)<<", \"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.bHj_9fdyvWQVzpFcnZsuNAHaLE%26pid%3DApi%26h%3D160&f=1&ipt=48be6108a930ac5836f25296ae183b24c6d29cb44fa61c99ee1bbb4b0d32ae20&ipo=images\""<<");";
+        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(userID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\""<<");";
 		cout << query.str() << endl;
 	    return this->run(query.str(),NULL);
 

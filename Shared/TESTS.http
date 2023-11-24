@@ -1,5 +1,14 @@
 ### Add the waterbottle to 777
-POST http://localhost:8080/api/upload/777/565
+POST http://localhost:8080/api/upload/777
+
+{
+    "id": 565,
+    "sellerid": 1000,
+    "name": "Waterbottle",
+    "description": "A 2L Waterbottle, perfect for hikes and stuff.",
+    "imgurl": "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.bHj_9fdyvWQVzpFcnZsuNAHaLE%26pid%3DApi%26h%3D160&f=1&ipt=48be6108a930ac5836f25296ae183b24c6d29cb44fa61c99ee1bbb4b0d32ae20&ipo=images",
+    "cost": 9.99
+}
 
 ### Delete the waterbottle from 777
 DELETE http://localhost:8080/api/remove/777/565
