@@ -32,13 +32,17 @@ int main()
 	#endif
 
 	CROW_ROUTE(app, "/api/upload/<int>/<int>") // upload product to cart
+	.methods(HTTPMethod::POST, HTTPMethod::PUT)
         ([&db](const request& req, response& res,int userID, int productID){
             res.set_header("Content-Type", "text/html");
+
+			// TODO Send request to product team asking for product info
+			//   OR read request body for product info
 
             // Load the html file
             string indexhtml = loadFile(res, "", "index.html");
             bool worked=db.uploadCartProducts(userID,productID);
-            std::string pidString = std::to_string(productID);
+
             if(worked)
                 res.code=200;
             else
@@ -47,6 +51,27 @@ int main()
 
             res.end();
         });
+
+	CROW_ROUTE(app, "/api/remove/<int>/<int>") // upload product to cart
+	.methods(HTTPMethod::DELETE)
+        ([&db](const request& req, response& res,int userID, int productID){
+
+            // Load the html file
+			std::stringstream query;
+			query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=" << userID << ") AND Products.id=" << productID << ";";
+
+            bool worked = db.run(query.str());
+
+			res.set_header("Content-Type", "text/html");
+            if(worked)
+                res.code=200;
+            else
+                res.code=500;
+
+
+            res.end();
+        });
+
 	CROW_ROUTE(app, "/<int>") // Products Page
 		([&db](const request& req, response& res, int userID){
 
