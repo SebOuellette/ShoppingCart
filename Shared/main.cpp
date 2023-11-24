@@ -19,17 +19,19 @@ int main()
 {
 	crow::SimpleApp app;
 	map<ID, Cart> carts;
-	// Create and initialize the database
+// Create and initialize the database
 	DB db;
 
 	
 
 	#ifdef DEBUG
 		carts.insert_or_assign(0, Cart(0, 0));
-		carts.at(0).products.push_back("test product");
+		carts.at(0).addProduct(Product());
+
+		carts.at(0).at(0).timeAdded -= std::chrono::months(3);
 	#endif
 
-	CROW_ROUTE(app, "/api/upload/<int>/<int>") // upload product to cart
+CROW_ROUTE(app, "/api/upload/<int>/<int>") // upload product to cart
         ([&db](const request& req, response& res,int userID, int productID){
             res.set_header("Content-Type", "text/html");
 
@@ -45,6 +47,7 @@ int main()
 
             res.end();
         });
+
 	CROW_ROUTE(app, "/<int>") // Products Page
 		([&db](const request& req, response& res, int userID){
 
@@ -89,14 +92,14 @@ int main()
 			
 	CROW_ROUTE(app, "/products") // Products Page
 	([](const request& req, response& res){
-		res.set_header("Content-Type", "text/html");
+			res.set_header("Content-Type", "text/html");
 			
-		res.write(loadFile(res, "", "index.html"));
+			res.write(loadFile(res, "", "index.html"));
 			
-		res.end();
-	});
+			res.end();
+		});
 
-	CROW_ROUTE(app, "/home") // home Page
+CROW_ROUTE(app, "/home") // home Page
 	([](const request& req, response& res){
 		res.set_header("Content-Type", "text/html");
 			
@@ -154,6 +157,7 @@ int main()
 			if(carts.contains(user))
 			{
 				Cart cart = carts.at(user);
+				cart.removeExpired();
 				res.write(cart.toJSON().dump());
 				res.end();
 				return;
@@ -164,7 +168,8 @@ int main()
 			
 			res.end();
 		});
-		
+
+
 	app.port(23500).multithreaded().run();
 	return 1;
 }

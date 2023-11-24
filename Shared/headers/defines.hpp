@@ -29,4 +29,6 @@ typedef unsigned long long int ID;
 #define PRODUCT_TEMPLATE "<!--[[NEXT-CART-ITEM]]-->"
 #define TOTAL_COST_TEMPLATE "[[TOTAL_COST]]"
 
+#define DEBUG 1
+
 #endif

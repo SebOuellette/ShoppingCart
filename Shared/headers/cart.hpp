@@ -38,6 +38,8 @@ public:
 	}
 
 	void addProduct(Product newP) {
+		this->_products.push_back(newP);
+
 		// TODO
 		// Check if product already exists in vector
 		 /// If so, increase its quantity by newP.quantity
@@ -75,6 +77,21 @@ public:
 		jsonObject["products"] = this->_products;
 		return jsonObject;
 	}
+
+	void removeExpired() {
+		int i = 0;
+
+		while (i < this->_products.size())	{
+			if (this->_products.at(i).isExpired())	{
+				this->_products.erase(this->_products.begin() + i);
+				continue;
+			}
+			i++;
+
+		}
+
+	}
+
 };
 
 
