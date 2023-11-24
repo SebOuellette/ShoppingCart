@@ -65,7 +65,7 @@ int main()
         });
 
 	CROW_ROUTE(app, "/api/remove/<int>/<int>") // upload product to cart
-	.methods(HTTPMethod::DELETE)
+	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
         ([&db](const request& req, response& res,int userID, int productID){
 
             // Load the html file
@@ -74,12 +74,11 @@ int main()
 
             bool worked = db.run(query.str());
 
-			res.set_header("Content-Type", "text/html");
-            if(worked)
-                res.code=200;
-            else
-                res.code=500;
-
+			// Redirect to the cart page
+            res.code = 307;
+			res.set_header("Location", std::string(CART) + "/" + to_string(userID));
+		
+			res.write("Redirecting to user cart");
 
             res.end();
         });
@@ -116,7 +115,7 @@ int main()
 							"<p class=\"product-description\">" << prods[i].description << "</p>"
 						"</div>"
 					"</div>"
-                	"<button class=\"product-remove\">Remove</button>"
+                	"<button class=\"product-remove\"><a href=\"/api/remove/" << userID << "/" << prods[i].id << "\">Remove</a></button>"
            		"</li>" << PRODUCT_TEMPLATE;
 
 				indexhtml = replaceTemplates(indexhtml, PRODUCT_TEMPLATE, replacement.str());

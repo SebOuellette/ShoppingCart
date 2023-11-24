@@ -15,7 +15,8 @@ using namespace std;
 
 // Module IP Addresses
 #define PROFILE "http://localhost:8081"
-#define CHECKOUT "http://10.0.0.137:8082"
+#define CHECKOUT "http://10.144.109.21:8082"
+#define CART "http://localhost:8080"
 
 // Product Defines
 #define NAME_LENGTH 128
@@ -30,5 +31,6 @@ typedef unsigned long long int ID;
 #define PRODUCT_TEMPLATE "<!--[[NEXT-CART-ITEM]]-->"
 #define TOTAL_COST_TEMPLATE "[[TOTAL_COST]]"
 #define USER_ID_TEMPLATE "[[USER_ID]]"
+
 
 #endif
