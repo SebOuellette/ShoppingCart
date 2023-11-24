@@ -83,6 +83,10 @@ int main()
 
 			// This should actually be loaded directly into cart but this is for a demo/test
 			vector<Product> prods = db.loadCartProducts(userID);
+			float total = Cart::totalCost(prods);
+			std::stringstream totalStream;
+			totalStream << std::fixed << std::setprecision(2) << total;
+			indexhtml = replaceTemplates(indexhtml, TOTAL_COST_TEMPLATE, totalStream.str());
 
 			// Replace item templates with items in the database
 			for (int i=0;i<prods.size();i++) {
