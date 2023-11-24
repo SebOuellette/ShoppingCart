@@ -37,6 +37,12 @@ public:
 		return this->_userID;
 	}
 
+	vector<Product> getProductsCopy() {
+		vector<Product> copy = _products;
+
+		return copy;
+	}
+
 	void addProduct(Product newP) {
 		// TODO
 		// Check if product already exists in vector
@@ -50,6 +56,17 @@ public:
 	// Find the number of unique elements in the _products vector. Having a quantity of > 1 does not count as more than 1 element
 	int productCount() {
 		return this->_products.size();
+	}
+
+	// Calculate the total cost of products
+	static float totalCost(vector<Product> products) {
+		float total = 0;
+		
+		for (Product p : products) {
+			total += p.price;
+		}
+
+		return total;
 	}
 
 	// Return a reference to the product at index index

@@ -2,6 +2,7 @@
 
 #include "headers/db.hpp"
 #include "headers/cart.hpp"
+#include "headers/http.hpp"
 
 #include <regex>
 #include <iostream>
@@ -10,13 +11,14 @@
 
 // Function Definitions
 std::string loadFile(response& res, std::string _folder, std::string _name);
-std::string replaceTemplates(std::string htmlString, Product newProd, const char templateStr[], std::string replacement);
+std::string replaceTemplates(std::string htmlString, const char templateStr[], std::string replacement);
 std::string replaceProductTemplates(std::string htmlString, Product newProd);
 bool isAuthorized(ID userID, const request& req);
 
 // Main Function
 int main()
 {
+	curl_global_init(CURL_GLOBAL_DEFAULT);
 	crow::SimpleApp app;
 	map<ID, Cart> carts;
 	// Create and initialize the database
@@ -52,6 +54,7 @@ int main()
 
 			// Load the html file
 			string indexhtml = loadFile(res, "", "index.html");
+			indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, std::to_string(userID));
 
 			// This should actually be loaded directly into cart but this is for a demo/test
 			vector<Product> prods = db.loadCartProducts(userID);
@@ -75,7 +78,7 @@ int main()
                 	"<button class=\"product-remove\">Remove</button>"
            		"</li>" << PRODUCT_TEMPLATE;
 
-				indexhtml = replaceTemplates(indexhtml, prods[i], PRODUCT_TEMPLATE, replacement.str());
+				indexhtml = replaceTemplates(indexhtml, PRODUCT_TEMPLATE, replacement.str());
 			}
 
 			// TODO
@@ -105,11 +108,44 @@ int main()
 		res.end();
 	});
 
-	CROW_ROUTE(app, "/checkout") // billing Page
-	([](const request& req, response& res){
-		res.set_header("Content-Type", "text/html");
-			
-		res.write(loadFile(res, "", "billing.html"));
+	CROW_ROUTE(app, "/checkout/<int>") // billing Page
+	([&db](const request& req, response& res, int userID){
+		/// Ensure the user is authorized
+		// Read the authorization header
+		std::string bearer = req.get_header_value("Authorization");
+		std::stringstream ss(bearer);
+		std::string tmp, token;
+		ss >> tmp >> token;
+		// Read the saved hashed password and ensure they match token=username:password
+
+		/// Send cart info to the checkout module
+		vector<Product> prods = db.loadCartProducts(userID);
+		float total = Cart::totalCost(prods);
+
+		crow::json::wvalue jsonObject;
+		jsonObject["customerid"] = userID;
+		jsonObject["total"] = total;
+		jsonObject["products"] = prods;
+
+		// Send data to checkout module
+		res_t checkoutRes = HTTP::request(std::string(CHECKOUT) + "/" + to_string(userID), "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
+		//res_t checkoutRes = http.request(std::string(CHECKOUT) + "/" + to_string(userID), "GET\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"});
+
+
+		// We just assume the response is the link we redirect the user to
+		std::string redirectURL = checkoutRes.body;
+		if (redirectURL.length() == 0) {
+			res.code = 404;
+			res.write("No redirect page given.");
+			res.end();
+			return;
+		}
+
+		res.code = 307;
+		res.set_header("Location", redirectURL);
+		
+		res.write("Redirecting to provided redirect URL '" + redirectURL + "'");
+		//res.write(loadFile(res, "", "billing.html"));
 			
 		res.end();
 	});
@@ -189,7 +225,7 @@ string loadFile(response& res, std::string _folder, std::string _name) {
 	}
 }
 
-std::string replaceTemplates(std::string htmlString, Product newProd, const char templateStr[], std::string replacement) {
+std::string replaceTemplates(std::string htmlString, const char templateStr[], std::string replacement) {
 	const int templateSize = strlen(templateStr);
 
 	// Find the location of the first occurance of the product template
@@ -225,7 +261,7 @@ std::string replaceProductTemplates(std::string htmlString, Product newProd) {
                 "<button class=\"product-remove\">Remove</button>"
            "</li>" << PRODUCT_TEMPLATE;
 
-	return replaceTemplates(htmlString, newProd, PRODUCT_TEMPLATE, replacement.str());
+	return replaceTemplates(htmlString, PRODUCT_TEMPLATE, replacement.str());
 }
 
 
