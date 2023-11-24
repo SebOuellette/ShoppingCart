@@ -1,0 +1,5 @@
+### Add the waterbottle to 777
+POST http://localhost:8080/api/upload/777/565
+
+### Delete the waterbottle from 777
+DELETE http://localhost:8080/api/remove/777/565
