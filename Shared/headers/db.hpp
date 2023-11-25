@@ -110,7 +110,7 @@ public:
         }, (void*)&cartid);
 
 		// TEMPORARY
-        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(userID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\""<<");";
+        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl,time) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(userID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(p.timeAdded)<<");";
 		cout << query.str() << endl;
 	    return this->run(query.str(),NULL);
 
@@ -155,6 +155,8 @@ public:
 					p.quantity = atoi(argv[r]);
 				} else if (strcmp(colNames[r], "unitcost") == 0) {
 					p.price = atof(argv[r]);
+				} else if (strcmp(colNames[r], "time") == 0) {
+					p.timeAdded = atoi(argv[r]);
 				} 
 
 				//cout << colNames[r] << " : " << argv[r] << endl;
@@ -167,6 +169,31 @@ public:
 		// Return the list of products
 		return products;
 	}
+	void removeExpired(ID userID) {
+		
+		std::stringstream queryCheck;
+		queryCheck << "SELECT Products.id, Products.time FROM Products WHERE Products.userid =" << userID <<";";
+		this->run(queryCheck.str(), [](void* data, int argc, char** argv, char** colNames){
+			Product_s p;
+
+			for (int r=0;r<argc;r++) {
+				if (strcmp(colNames[r], "id") == 0) {
+					p.id = atoi(argv[r]);
+				}
+				else if (strcmp(colNames[r], "time") == 0) {
+					p.timeAdded = atoi(argv[r]);
+				} 
+			}
+
+			if (p.isExpired())
+			{
+				std::stringstream query;
+				query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=" << userID << ") AND Products.id=" << productID << ";";
+				bool worked = db.run(query.str());
+			}
+		});
+	}
+
 };
 
 #endif

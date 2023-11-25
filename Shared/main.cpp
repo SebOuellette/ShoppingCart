@@ -87,7 +87,8 @@ int main()
 		([&db](const request& req, response& res, int userID){
 
 			res.set_header("Content-Type", "text/html");
-
+			
+			db.removeExpired(userID);
 			// Load the html file
 			string indexhtml = loadFile(res, "", "index.html");
 			indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, std::to_string(userID));

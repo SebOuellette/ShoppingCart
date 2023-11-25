@@ -44,6 +44,7 @@ public:
 	}
 
 	void addProduct(Product newP) {
+		this->_products.push_back(newP);
 		// TODO
 		// Check if product already exists in vector
 		 /// If so, increase its quantity by newP.quantity

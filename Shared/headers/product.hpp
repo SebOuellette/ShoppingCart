@@ -14,6 +14,25 @@ typedef struct _Product {
 	double price;
 	unsigned int quantity = 1;
 
+	std::chrono::system_clock::time_point timeAdded;
+
+	_Product() : timeAdded(std::chrono::system_clock::now())	{}
+
+	bool isExpired() {
+		auto currentTime = std::chrono::system_clock::now();
+		auto difference = currentTime - timeAdded;
+
+		auto months = std::chrono::duration_cast<std::chrono::months>(difference);
+
+		if (months.count() < 2)	{
+			return 0;
+		}
+		else {
+			return 1;
+		}
+
+	}
+
 
 
 	// Add conversion from a product to an int
@@ -31,6 +50,25 @@ typedef struct _Product_s {
     std::string imgurl;
 	double price;
 	unsigned int quantity = 1;
+
+	std::chrono::system_clock::time_point timeAdded;
+
+	_Product_s() : timeAdded(std::chrono::system_clock::now())	{}
+
+	bool isExpired() {
+		auto currentTime = std::chrono::system_clock::now();
+		auto difference = currentTime - timeAdded;
+
+		auto months = std::chrono::duration_cast<std::chrono::months>(difference);
+
+		if (months.count() < 2)	{
+			return 0;
+		}
+		else {
+			return 1;
+		}
+
+	}
 
 
 
