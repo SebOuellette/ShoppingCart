@@ -110,7 +110,7 @@ public:
         }, (void*)&cartid);
 
 		// TEMPORARY
-        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl,time) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(userID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(p.timeAdded)<<");";
+        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl,time) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(userID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(std::chrono::duration_cast<std::chrono::milliseconds>(p.timeAdded.time_since_epoch()).count())<<");";
 		cout << query.str() << endl;
 	    return this->run(query.str(),NULL);
 
@@ -156,7 +156,7 @@ public:
 				} else if (strcmp(colNames[r], "unitcost") == 0) {
 					p.price = atof(argv[r]);
 				} else if (strcmp(colNames[r], "time") == 0) {
-					p.timeAdded = atoi(argv[r]);
+					p.timeAdded = std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(stoll(argv[r])));
 				} 
 
 				//cout << colNames[r] << " : " << argv[r] << endl;
@@ -169,29 +169,36 @@ public:
 		// Return the list of products
 		return products;
 	}
+
 	void removeExpired(ID userID) {
 		
 		std::stringstream queryCheck;
-		queryCheck << "SELECT Products.id, Products.time FROM Products WHERE Products.userid =" << userID <<";";
+		queryCheck << "SELECT Users.id as userid, Products.id, Products.time FROM Products INNER JOIN Carts ON Carts.id=Products.cartid INNER JOIN Users ON Users.id=Carts.userid WHERE Users.id=" << userID <<  ";";
+
 		this->run(queryCheck.str(), [](void* data, int argc, char** argv, char** colNames){
 			Product_s p;
+			ID userID;
+			DB* thisDB = (DB*)data;
 
 			for (int r=0;r<argc;r++) {
 				if (strcmp(colNames[r], "id") == 0) {
 					p.id = atoi(argv[r]);
+				} else if (strcmp(colNames[r], "time") == 0) {
+					p.timeAdded = std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(stoll(argv[r])));
+				} else if (strcmp(colNames[r], "userid") == 0) {
+					userID = atoi(argv[r]);
 				}
-				else if (strcmp(colNames[r], "time") == 0) {
-					p.timeAdded = atoi(argv[r]);
-				} 
 			}
+
 
 			if (p.isExpired())
 			{
 				std::stringstream query;
-				query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=" << userID << ") AND Products.id=" << productID << ";";
-				bool worked = db.run(query.str());
+				query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=" << userID << ") AND Products.id=" << p.id << ";";
+				bool worked = thisDB->run(query.str());
 			}
-		});
+			return 0;
+		}, (void*)this);
 	}
 
 };
