@@ -91,6 +91,7 @@ int main()
 			// Load the html file
 			string indexhtml = loadFile(res, "", "index.html");
 			indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, std::to_string(userID));
+			indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
 
 			// This should actually be loaded directly into cart but this is for a demo/test
 			vector<Product> prods = db.loadCartProducts(userID);
