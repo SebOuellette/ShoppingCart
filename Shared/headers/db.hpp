@@ -82,8 +82,10 @@ public:
 	//upload new products to the cart
 	bool uploadCartProducts(ID userID, Product_s p) {
 
-		// ToDO
-		// CHeck if user and cart already exist in system, if not, add them
+		// Check if user and cart already exist in system, if not, add them
+		stringstream checkQuery;
+		checkQuery << "INSERT INTO Carts (userid) SELECT " << userID <<" WHERE NOT EXISTS (SELECT 1 FROM Carts WHERE userid = " << userID << ");";
+		this->run(checkQuery.str());
 
         stringstream query;
         stringstream selectQuery;
@@ -102,16 +104,15 @@ public:
 
                 // Build a product
                 if (strcmp(colNames[r], "id") == 0) {
-                    *cartid = argv[r];
+                    *cartid = std::string(argv[r]);
 				}
 
             }
             return 0;
         }, (void*)&cartid);
 
-		// TEMPORARY
-        query << "INSERT INTO Products (id,cartid,sellerid,name,description, quantity,unitcost,imgurl,time) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(userID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(std::chrono::duration_cast<std::chrono::milliseconds>(p.timeAdded.time_since_epoch()).count())<<");";
-		cout << query.str() << endl;
+        query << "INSERT INTO Products (id,cartid,sellerid,name,description,quantity,unitcost,imgurl,time) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(p.sellerID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(std::chrono::duration_cast<std::chrono::milliseconds>(p.timeAdded.time_since_epoch()).count())<<");";
+		//cout << query.str() << endl;
 	    return this->run(query.str(),NULL);
 
         // Return the list of products
@@ -121,7 +122,7 @@ public:
 	// Get list of products by user id
 	vector<Product> loadCartProducts(ID userID) {
 		stringstream query;
-		query << "SELECT Products.*, Users.id as userid FROM Products INNER JOIN Carts ON Carts.id=Products.cartid INNER JOIN Users ON Users.id=Carts.userid WHERE Users.id=" << userID <<  ";";
+		query << "SELECT Carts.userid as userid, Products.* FROM Products INNER JOIN Carts ON Carts.id=Products.cartid WHERE Carts.userid=" << userID <<  ";";
 		//cout << "Running: " << query.str() << endl;
 
 		vector<Product> products;
@@ -173,7 +174,7 @@ public:
 	void removeExpired(ID userID) {
 		
 		std::stringstream queryCheck;
-		queryCheck << "SELECT Users.id as userid, Products.id, Products.time FROM Products INNER JOIN Carts ON Carts.id=Products.cartid INNER JOIN Users ON Users.id=Carts.userid WHERE Users.id=" << userID <<  ";";
+		queryCheck << "SELECT Carts.userid as userid, Products.* FROM Products INNER JOIN Carts ON Carts.id=Products.cartid WHERE Carts.userid=" << userID <<  ";";
 
 		this->run(queryCheck.str(), [](void* data, int argc, char** argv, char** colNames){
 			Product_s p;

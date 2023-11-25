@@ -36,9 +36,6 @@ int main()
         ([&db](const request& req, response& res,int userID){
             res.set_header("Content-Type", "text/html");
 
-			// TODO Send request to product team asking for product info
-			//   OR read request body for product info
-
 			const crow::json::rvalue& parsed = crow::json::load(req.body);
 
 			Product_s p;

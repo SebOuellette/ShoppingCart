@@ -1,8 +1,8 @@
 ### Add the waterbottle to 777
-POST http://localhost:8080/api/upload/777
+POST http://localhost:8080/api/upload/42070
 
 {
-    "id": 566,
+    "id": 5689,
     "sellerid": 1000,
     "name": "Waterbottle 2",
     "description": "A 55L Waterbottle, perfect for hikes and stuff.",
@@ -11,4 +11,4 @@ POST http://localhost:8080/api/upload/777
 }
 
 ### Delete the waterbottle from 777
-DELETE http://localhost:8080/api/remove/777/566
+DELETE http://localhost:8080/api/remove/42069/568
