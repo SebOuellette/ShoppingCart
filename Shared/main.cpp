@@ -170,7 +170,7 @@ int main()
 		jsonObject["products"] = prods;
 
 		// Send data to checkout module
-		res_t checkoutRes = HTTP::request(std::string(CHECKOUT) + "/" + to_string(userID), "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
+		res_t checkoutRes = HTTP::request(std::string(CHECKOUT) + "/api/cartinfo", "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
 		//res_t checkoutRes = http.request(std::string(CHECKOUT) + "/" + to_string(userID), "GET\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"});
 
 
