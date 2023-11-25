@@ -90,6 +90,8 @@ int main()
 			string indexhtml = loadFile(res, "", "index.html");
 			indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, std::to_string(userID));
 			indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
+			indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);
+			indexhtml = replaceTemplates(indexhtml, PRODUCTS_LINK_TEMPLATE, HOME); // PRODUCT is the api link
 
 			// This should actually be loaded directly into cart but this is for a demo/test
 			vector<Product> prods = db.loadCartProducts(userID);

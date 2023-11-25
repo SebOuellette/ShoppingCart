@@ -14,10 +14,12 @@ using namespace std;
 
 
 // Module IP Addresses
-#define PROFILE "http://localhost:8081"
-#define CHECKOUT "http://10.144.109.21:8082"
-#define CART "http://localhost:8080"
-#define AD "http://localhost:8080"
+#define PROFILE "http://0.0.0.0"
+#define CHECKOUT "http://10.144.116.131:8080"
+#define CART "http://10.144.116.56:8080"
+#define AD "http://10.144.116.118:7015"
+#define PRODUCT "http://172.105.25.146:8080"
+#define HOME "http://172.105.25.146:8081"
 
 // Product Defines
 #define NAME_LENGTH 128
@@ -33,6 +35,8 @@ typedef unsigned long long int ID;
 #define TOTAL_COST_TEMPLATE "[[TOTAL_COST]]"
 #define USER_ID_TEMPLATE "[[USER_ID]]"
 #define AD_TEMPLATE "[[AD-MODULE]]"
+#define HOME_LINK_TEMPLATE "[[HOME_LINK]]"
+#define PRODUCTS_LINK_TEMPLATE "[[PRODUCTS_LINK]]"
 
 
 #endif
