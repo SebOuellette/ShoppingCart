@@ -156,19 +156,21 @@
     </head>
     <body>
         <header>
-            <div class="menu-icon" onclick="toggleMenu()">
+            <div style="float:right" class="menu-icon" onclick="toggleMenu()">
                 <div></div>
                 <div></div>
                 <div></div>
             </div>
             <div class="container">
+                <a style="float:left" class="navbar-brand" href="index.html">
+                    <img src="https://cdn.discordapp.com/attachments/899668201066094633/1173375949488799834/logo.png?ex=6563ba82&is=65514582&hm=611d9984dbf82609ebd3f972654dabcffd1f8b4ee24613298e9b196161f423a9&" width="64">
+                </a>
                 <h1>Shopping Cart</h1>
-                <button><a href="/checkout/[[USER_ID]]">Proceed to Checkout</a></button> <!-- can prob be removed -->
             </div>
             <div class="navbar">
                 <ul class="active">
                     <li><a href="[[HOME_LINK]]">Home</a></li>
-                    <li><a href="[[PRODUCTS_LINK]]">Products</a></li>
+                    <li><a href="[[PRODUCTS_LINK]]">Profile</a></li>
                 </ul>
             </div>
         </header>
@@ -185,18 +187,27 @@
                     Total: $[[TOTAL_COST]]
                 </div>
             </div>
+            <button style="float:right"><a href="/checkout/[[USER_ID]]">Proceed to Checkout</a></button> 
         </div>
 
-    
         <script>
             function toggleMenu() {
                 const navbar = document.querySelector('.navbar');
                 navbar.classList.toggle('active');
             }
         </script>
-        
+        <br/><br/>
         <center>
         <iframe src="[[AD-MODULE]]/api/ad/400/100" title="ad" width="400" height="100"></iframe> 
         </center>
+        <footer style="height:fit-content;">
+            <div class="container">
+                <p>© (G3) eCommerce Product Module 2023. All rights left. Unauthorized
+                    copying of
+                    this project is not only frowned upon but also punishable by being forced to listen to elevator music
+                    for an entire day. Seriously, we worked hard on this – don't make us unleash the music of torture!
+                </p>
+            </div>
+        </footer>
     </body>
     </html>
