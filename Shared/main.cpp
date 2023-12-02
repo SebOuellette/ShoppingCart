@@ -218,6 +218,9 @@ int main()
 		res_t checkoutRes = HTTP::request(std::string(CHECKOUT) + "/api/cartinfo", "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
 		//res_t checkoutRes = http.request(std::string(CHECKOUT) + "/" + to_string(userID), "GET\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"});
 
+		// Ad module also wants this data, so send it to them
+		res_t checkoutRes = HTTP::request(std::string(AD) + "/api/parsejson", "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
+
 
 		// We just assume the response is the link we redirect the user to
 		std::string redirectURL = checkoutRes.body;
