@@ -59,5 +59,19 @@ POST http://localhost:8080/api/upload/777meat
     "cost": 2.99
 }
 
+
+### String Product ID, String SellerID, and string UserID
+# All uploading to a wishlist
+POST http://localhost:8080/api/wishlist/upload/777
+
+{
+    "id": "P23498729387",
+    "sellerid": "S3456934857",
+    "name": "Potato",
+    "description": "In a pinch, you can historically always rely on potatoes.",
+    "imgurl": "https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.valleyspuds.com%2Fwp-content%2Fuploads%2FRusset-Potatoes-cut.jpg&f=1&nofb=1&ipt=99bba0bcf7bb7048f6ceffcdd96d08db1dccd6c6ba03270a83cd009525503b67&ipo=images",
+    "cost": 2.99
+}
+
 ### Delete the waterbottle from 777
 DELETE http://localhost:8080/api/remove/42069/568

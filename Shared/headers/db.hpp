@@ -57,7 +57,9 @@ public:
 		string createTables[TABLES] = {
 			"CREATE TABLE IF NOT EXISTS Users (id TEXT NOT NULL UNIQUE, cartid int NOT NULL UNIQUE, name varchar(128) NOT NULL UNIQUE, passhash varchar(1024) NOT NULL)",
 			"CREATE TABLE IF NOT EXISTS Carts (id INTEGER NOT NULL UNIQUE, userid TEXT NOT NULL UNIQUE, PRIMARY KEY(id AUTOINCREMENT))",
-			"CREATE TABLE IF NOT EXISTS Products (id TEXT NOT NULL, cartid int NOT NULL, sellerid TEXT NOT NULL, name varchar(128) NOT NULL, description varchar(4096) NOT NULL, quantity int NOT NULL, unitcost double NOT NULL, imgurl varchar(512) NOT NULL, time NUMERIC NOT NULL)"
+			"CREATE TABLE IF NOT EXISTS Wishlists (id INTEGER NOT NULL UNIQUE, userid TEXT NOT NULL UNIQUE, PRIMARY KEY(id AUTOINCREMENT))",
+			"CREATE TABLE IF NOT EXISTS Products (id TEXT NOT NULL, cartid int NOT NULL, sellerid TEXT NOT NULL, name varchar(128) NOT NULL, description varchar(4096) NOT NULL, quantity int NOT NULL, unitcost double NOT NULL, imgurl varchar(512) NOT NULL, time NUMERIC NOT NULL)",
+			"CREATE TABLE IF NOT EXISTS WantedProducts (id TEXT NOT NULL, cartid int NOT NULL, sellerid TEXT NOT NULL, name varchar(128) NOT NULL, description varchar(4096) NOT NULL, quantity int NOT NULL, unitcost double NOT NULL, imgurl varchar(512) NOT NULL, time NUMERIC NOT NULL)"
 		};
 
 		// Open Database
@@ -80,16 +82,19 @@ public:
 		return (exit == SQLITE_OK);
 	}
 	//upload new products to the cart
-	bool uploadCartProducts(ID userID, Product_s p) {
+	bool uploadProducts(ID userID, Product_s p, bool wishlist=false) {
+
+		std::string CartTable = wishlist ? "Wishlists" : "Carts";
+		std::string ProductTable = wishlist ? "WantedProducts" : "Products";
 
 		// Check if user and cart already exist in system, if not, add them
 		stringstream checkQuery;
-		checkQuery << "INSERT INTO Carts (userid) SELECT \"" << userID <<"\" WHERE NOT EXISTS (SELECT 1 FROM Carts WHERE userid = \"" << userID << "\");";
+		checkQuery << "INSERT INTO "<<CartTable<<" (userid) SELECT \"" << userID <<"\" WHERE NOT EXISTS (SELECT 1 FROM "<<CartTable<<" WHERE userid = \"" << userID << "\");";
 		this->run(checkQuery.str());
 
         stringstream query;
         stringstream selectQuery;
-        selectQuery<<"SELECT Carts.id FROM Carts where Carts.userid=\""<<userID<<"\";";
+        selectQuery<<"SELECT "<< CartTable <<".id FROM "<< CartTable <<" where "<<CartTable<<".userid=\""<<userID<<"\";";
         //cout << "Running: " << query.str() << endl;
         string cartid;
 
@@ -111,7 +116,7 @@ public:
             return 0;
         }, (void*)&cartid);
 
-        query << "INSERT INTO Products (id,cartid,sellerid,name,description,quantity,unitcost,imgurl,time) VALUES(\""<<p.id<<"\","<< cartid <<",\""<<p.sellerID<<"\",\"" << p.name << "\",\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(std::chrono::duration_cast<std::chrono::milliseconds>(p.timeAdded.time_since_epoch()).count())<<");";
+        query << "INSERT INTO " <<ProductTable << "(id,cartid,sellerid,name,description,quantity,unitcost,imgurl,time) VALUES(\""<<p.id<<"\","<< cartid <<",\""<<p.sellerID<<"\",\"" << p.name << "\",\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(std::chrono::duration_cast<std::chrono::milliseconds>(p.timeAdded.time_since_epoch()).count())<<");";
 		//cout << query.str() << endl;
 	    return this->run(query.str(),NULL);
 
@@ -120,9 +125,12 @@ public:
     }
 
 	// Get list of products by user id
-	vector<Product> loadCartProducts(ID userID) {
+	vector<Product> loadProducts(ID userID, bool wishlist=false) {
+		std::string CartTable = wishlist ? "Wishlists" : "Carts";
+		std::string ProductTable = wishlist ? "WantedProducts" : "Products";
+
 		stringstream query;
-		query << "SELECT Carts.userid as userid, Products.* FROM Products INNER JOIN Carts ON Carts.id=Products.cartid WHERE Carts.userid=\"" << userID <<  "\";";
+		query << "SELECT "<<CartTable<<".userid as userid, "<<ProductTable<<".* FROM "<<ProductTable<<" INNER JOIN "<<CartTable<<" ON "<<CartTable<<".id="<<ProductTable<<".cartid WHERE "<<CartTable<<".userid=\"" << userID <<  "\";";
 		//cout << "Running: " << query.str() << endl;
 
 		vector<Product> products;

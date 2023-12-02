@@ -10,9 +10,9 @@
 
 
 // Function Definitions
+string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID userID, bool wishlist);
 std::string loadFile(response& res, std::string _folder, std::string _name);
 std::string replaceTemplates(std::string htmlString, const char templateStr[], std::string replacement);
-std::string replaceProductTemplates(std::string htmlString, Product newProd);
 bool isAuthorized(ID userID, const request& req);
 
 // Main Function
@@ -50,7 +50,37 @@ int main()
 
             // Load the html file
             string indexhtml = loadFile(res, "", "index.html");
-            bool worked=db.uploadCartProducts(userID,p);
+            bool worked=db.uploadProducts(userID, p);
+
+            if(worked)
+                res.code=200;
+            else
+                res.code=505;
+
+
+            res.end();
+        });
+
+	CROW_ROUTE(app, "/api/wishlist/upload/<string>") // upload product to cart
+	.methods(HTTPMethod::POST, HTTPMethod::PUT)
+        ([&db](const request& req, response& res,ID userID){
+            res.set_header("Content-Type", "text/html");
+
+			const crow::json::rvalue& parsed = crow::json::load(req.body);
+
+			Product_s p;
+
+			p.id = parsed["id"].s();
+			p.sellerID = parsed["sellerid"].s();
+			p.name = parsed["name"].s();
+			p.description = parsed["description"].s();
+			p.imgurl = parsed["imgurl"].s();
+			p.price = parsed["cost"].d();
+			p.quantity = 1;
+
+            // Load the html file
+            string indexhtml = loadFile(res, "", "index.html");
+            bool worked=db.uploadProducts(userID, p, true);
 
             if(worked)
                 res.code=200;
@@ -80,47 +110,63 @@ int main()
             res.end();
         });
 
+	CROW_ROUTE(app, "/api/wishlist/remove/<string>/<string>") // upload product to cart
+	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
+        ([&db](const request& req, response& res,ID userID, ID productID){
+
+            // Load the html file
+			std::stringstream query;
+			query << "DELETE FROM WantedProducts WHERE cartid=(SELECT Wishlists.id FROM Wishlists WHERE userid=\"" << userID << "\") AND WantedProducts.id=\"" << productID << "\";";
+
+            bool worked = db.run(query.str());
+
+			// Redirect to the cart page
+            res.code = 307;
+			res.set_header("Location", std::string(CART) + "/wishlist/" + userID);
+		
+			res.write("Redirecting to user cart");
+
+            res.end();
+        });
+
 	CROW_ROUTE(app, "/<string>") // Products Page
 		([&db](const request& req, response& res, ID userID){
+			// Remove any expired products from the list
+			db.removeExpired(userID);
+
+			// Then retrieve the updated list
+			vector<Product> prods = db.loadProducts(userID, false);
+
 
 			res.set_header("Content-Type", "text/html");
 			
-			db.removeExpired(userID);
 			// Load the html file
 			string indexhtml = loadFile(res, "", "index.html");
-			indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
-			indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
-			indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);
-			indexhtml = replaceTemplates(indexhtml, PRODUCTS_LINK_TEMPLATE, HOME); // PRODUCT is the api link
+			indexhtml = updateIndexTemplates(indexhtml, prods, userID, false);
 
-			// This should actually be loaded directly into cart but this is for a demo/test
-			vector<Product> prods = db.loadCartProducts(userID);
-			float total = Cart::totalCost(prods);
-			std::stringstream totalStream;
-			totalStream << std::fixed << std::setprecision(2) << total;
-			indexhtml = replaceTemplates(indexhtml, TOTAL_COST_TEMPLATE, totalStream.str());
+			// TODO
+			// Calculate total and replace the TOTAL_TEMPLATE
+			
+			// Write the final html to the result body
+			res.write(indexhtml);
 
-			// Replace item templates with items in the database
-			for (int i=0;i<prods.size();i++) {
-				stringstream replacement;
-				replacement << 
-				"<li class=\"product\">"
-                	"<img src=\"" << prods[i].imgurl << "\" alt=\"" << prods[i].name << "\">"
-                	"<div class=\"product-details\">"
-						"<div class=\"product-details-small\">"
-                    		"<h3 class=\"product-title\">" << prods[i].name << "</h3>"
-                    		"<p class=\"product-price\">$" << prods[i].price << "</p>"
-                    		"<p class=\"product-quantity\">Quantity: " << prods[i].quantity << "</p>"
-                		"</div>"
-						"<div class=\"product-details-large\">"
-							"<p class=\"product-description\">" << prods[i].description << "</p>"
-						"</div>"
-					"</div>"
-                	"<button class=\"product-remove\"><a href=\"/api/remove/" << userID << "/" << prods[i].id << "\">Remove</a></button>"
-           		"</li>" << PRODUCT_TEMPLATE;
+			res.end();
+		});
 
-				indexhtml = replaceTemplates(indexhtml, PRODUCT_TEMPLATE, replacement.str());
-			}
+	CROW_ROUTE(app, "/wishlist/<string>") // Products Page
+		([&db](const request& req, response& res, ID userID){
+			// Remove any expired products from the list
+			db.removeExpired(userID);
+
+			// Then retrieve the updated list
+			vector<Product> prods = db.loadProducts(userID, true);
+
+
+			res.set_header("Content-Type", "text/html");
+			
+			// Load the html file
+			string indexhtml = loadFile(res, "", "index.html");
+			indexhtml = updateIndexTemplates(indexhtml, prods, userID, true);
 
 			// TODO
 			// Calculate total and replace the TOTAL_TEMPLATE
@@ -160,7 +206,7 @@ int main()
 		// Read the saved hashed password and ensure they match token=username:password
 
 		/// Send cart info to the checkout module
-		vector<Product> prods = db.loadCartProducts(userID);
+		vector<Product> prods = db.loadProducts(userID);
 		float total = Cart::totalCost(prods);
 
 		crow::json::wvalue jsonObject;
@@ -246,6 +292,43 @@ int main()
 	return 1;
 }
 
+string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID userID, bool wishlist) {
+	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
+	indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
+	indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);
+	indexhtml = replaceTemplates(indexhtml, PRODUCTS_LINK_TEMPLATE, HOME); // PRODUCT is the api link
+
+	// This should actually be loaded directly into cart but this is for a demo/test
+	float total = Cart::totalCost(prods);
+	std::stringstream totalStream;
+	totalStream << std::fixed << std::setprecision(2) << total;
+	indexhtml = replaceTemplates(indexhtml, TOTAL_COST_TEMPLATE, totalStream.str());
+
+	// Replace item templates with items in the database
+	for (int i=0;i<prods.size();i++) {
+		stringstream replacement;
+		replacement << 
+		"<li class=\"product\">"
+			"<img src=\"" << prods[i].imgurl << "\" alt=\"" << prods[i].name << "\">"
+			"<div class=\"product-details\">"
+				"<div class=\"product-details-small\">"
+					"<h3 class=\"product-title\">" << prods[i].name << "</h3>"
+					"<p class=\"product-price\">$" << prods[i].price << "</p>"
+					"<p class=\"product-quantity\">Quantity: " << prods[i].quantity << "</p>"
+				"</div>"
+				"<div class=\"product-details-large\">"
+					"<p class=\"product-description\">" << prods[i].description << "</p>"
+				"</div>"
+			"</div>"
+			"<button class=\"product-remove\"><a href=\"/api/"<<(wishlist?"wishlist/":"")<<"remove/" << userID << "/" << prods[i].id << "\">Remove</a></button>"
+		"</li>" << PRODUCT_TEMPLATE;
+
+		indexhtml = replaceTemplates(indexhtml, PRODUCT_TEMPLATE, replacement.str());
+	}
+
+	return indexhtml;
+}
+
 
 // Function Definitions
 string loadFile(response& res, std::string _folder, std::string _name) {
@@ -284,27 +367,6 @@ std::string replaceTemplates(std::string htmlString, const char templateStr[], s
 
 	return result.str();
 }
-
-std::string replaceProductTemplates(std::string htmlString, Product newProd) {
-	stringstream replacement;
-	replacement << "<li class=\"product\">"
-                "<img src=\"" << newProd.imgurl << "\" alt=\"" << newProd.name << "\">"
-                "<div class=\"product-details\">"
-					"<div class=\"product-details-small\">"
-                    	"<h3 class=\"product-title\">" << newProd.name << "</h3>"
-                    	"<p class=\"product-price\">$" << newProd.price << "</p>"
-                    	"<p class=\"product-quantity\">Quantity: " << newProd.quantity << "</p>"
-                	"</div>"
-					"<div class=\"product-details-large\">"
-						"<p class=\"product-description\">" << newProd.description << "</p>"
-					"</div>"
-				"</div>"
-                "<button class=\"product-remove\">Remove</button>"
-           "</li>" << PRODUCT_TEMPLATE;
-
-	return replaceTemplates(htmlString, PRODUCT_TEMPLATE, replacement.str());
-}
-
 
 // Check if a request is authorized to access the cart for some userID.
 bool isAuthorized(ID userID, const request& req) {

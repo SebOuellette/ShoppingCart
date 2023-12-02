@@ -9,7 +9,7 @@ using namespace std;
 
 
 // Program Defines
-#define TABLES 3
+#define TABLES 5
 #define DB_PATH "/Shared/cart.db" // will create cart.db in the shared folder
 
 
