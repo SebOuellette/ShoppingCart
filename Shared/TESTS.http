@@ -27,12 +27,36 @@ POST http://localhost:8080/api/upload/777
 POST http://localhost:8080/api/upload/777
 
 {
-    "id": 34567,
+    "id": 34528,
     "sellerid": 1001,
     "name": "Nothing",
     "description": "Give the gift of nothing! Your friends and family are sure to disown you forever!",
     "imgurl": "https://www.homerungifts.com/wp-content/uploads/2019/12/The-Gift-of-Nothing.jpg",
     "cost": 7.50
+}
+
+### String Product ID and seller ID
+POST http://localhost:8080/api/upload/777
+
+{
+    "id": "P23498729387",
+    "sellerid": "S3456934857",
+    "name": "Potato",
+    "description": "In a pinch, you can historically always rely on potatoes.",
+    "imgurl": "https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.valleyspuds.com%2Fwp-content%2Fuploads%2FRusset-Potatoes-cut.jpg&f=1&nofb=1&ipt=99bba0bcf7bb7048f6ceffcdd96d08db1dccd6c6ba03270a83cd009525503b67&ipo=images",
+    "cost": 2.99
+}
+
+### String Product ID, String SellerID, and string UserID
+POST http://localhost:8080/api/upload/777meat
+
+{
+    "id": "P23498729387",
+    "sellerid": "S3456934857",
+    "name": "Potato",
+    "description": "In a pinch, you can historically always rely on potatoes.",
+    "imgurl": "https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.valleyspuds.com%2Fwp-content%2Fuploads%2FRusset-Potatoes-cut.jpg&f=1&nofb=1&ipt=99bba0bcf7bb7048f6ceffcdd96d08db1dccd6c6ba03270a83cd009525503b67&ipo=images",
+    "cost": 2.99
 }
 
 ### Delete the waterbottle from 777

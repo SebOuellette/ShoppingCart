@@ -31,17 +31,17 @@ int main()
 		carts.at(0).products.push_back("test product");
 	#endif
 
-	CROW_ROUTE(app, "/api/upload/<int>") // upload product to cart
+	CROW_ROUTE(app, "/api/upload/<string>") // upload product to cart
 	.methods(HTTPMethod::POST, HTTPMethod::PUT)
-        ([&db](const request& req, response& res,int userID){
+        ([&db](const request& req, response& res,ID userID){
             res.set_header("Content-Type", "text/html");
 
 			const crow::json::rvalue& parsed = crow::json::load(req.body);
 
 			Product_s p;
 
-			p.id = parsed["id"].i();
-			p.sellerID = parsed["sellerid"].i();
+			p.id = parsed["id"].s();
+			p.sellerID = parsed["sellerid"].s();
 			p.name = parsed["name"].s();
 			p.description = parsed["description"].s();
 			p.imgurl = parsed["imgurl"].s();
@@ -61,34 +61,34 @@ int main()
             res.end();
         });
 
-	CROW_ROUTE(app, "/api/remove/<int>/<int>") // upload product to cart
+	CROW_ROUTE(app, "/api/remove/<string>/<string>") // upload product to cart
 	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
-        ([&db](const request& req, response& res,int userID, int productID){
+        ([&db](const request& req, response& res,ID userID, ID productID){
 
             // Load the html file
 			std::stringstream query;
-			query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=" << userID << ") AND Products.id=" << productID << ";";
+			query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=\"" << userID << "\") AND Products.id=\"" << productID << "\";";
 
             bool worked = db.run(query.str());
 
 			// Redirect to the cart page
             res.code = 307;
-			res.set_header("Location", std::string(CART) + "/" + to_string(userID));
+			res.set_header("Location", std::string(CART) + "/" + userID);
 		
 			res.write("Redirecting to user cart");
 
             res.end();
         });
 
-	CROW_ROUTE(app, "/<int>") // Products Page
-		([&db](const request& req, response& res, int userID){
+	CROW_ROUTE(app, "/<string>") // Products Page
+		([&db](const request& req, response& res, ID userID){
 
 			res.set_header("Content-Type", "text/html");
 			
 			db.removeExpired(userID);
 			// Load the html file
 			string indexhtml = loadFile(res, "", "index.html");
-			indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, std::to_string(userID));
+			indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
 			indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
 			indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);
 			indexhtml = replaceTemplates(indexhtml, PRODUCTS_LINK_TEMPLATE, HOME); // PRODUCT is the api link
@@ -149,8 +149,8 @@ int main()
 		res.end();
 	});
 
-	CROW_ROUTE(app, "/checkout/<int>") // billing Page
-	([&db](const request& req, response& res, int userID){
+	CROW_ROUTE(app, "/checkout/<string>") // billing Page
+	([&db](const request& req, response& res, ID userID){
 		/// Ensure the user is authorized
 		// Read the authorization header
 		std::string bearer = req.get_header_value("Authorization");
@@ -191,10 +191,10 @@ int main()
 		res.end();
 	});
 
-	CROW_ROUTE(app, "/profile/<int>")
+	CROW_ROUTE(app, "/profile/<string>")
 	.methods(HTTPMethod::GET)
-		([](const request& req, response& res, int profileID){
-			std::string pidString = std::to_string(profileID);
+		([](const request& req, response& res, ID profileID){
+			std::string pidString = profileID;
 
 			// Temporary Redirect
 			res.code = 307;
@@ -226,21 +226,21 @@ int main()
 			res.end();
 		});
 
-	CROW_ROUTE(app, "/cart/<int>") 
-		([&carts](response& res, int user){
-			if(carts.contains(user))
-			{
-				Cart cart = carts.at(user);
-				res.write(cart.toJSON().dump());
-				res.end();
-				return;
-			}
+	// CROW_ROUTE(app, "/cart/<string>") 
+	// 	([&carts](response& res, int user){
+	// 		if(carts.contains(user))
+	// 		{
+	// 			Cart cart = carts.at(user);
+	// 			res.write(cart.toJSON().dump());
+	// 			res.end();
+	// 			return;
+	// 		}
 		
-			res.code = 404;
-			res.write("user not found");
+	// 		res.code = 404;
+	// 		res.write("user not found");
 			
-			res.end();
-		});
+	// 		res.end();
+	// 	});
 		
 	app.port(23500).multithreaded().run();
 	return 1;

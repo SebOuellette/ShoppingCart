@@ -16,7 +16,7 @@ using namespace std;
 // Module IP Addresses
 #define PROFILE "http://0.0.0.0"
 #define CHECKOUT "http://10.144.116.131:8080"
-#define CART "http://10.144.116.56:8080"
+#define CART "http://localhost:8080"
 #define AD "http://10.144.116.118:7015"
 #define PRODUCT "http://172.105.25.146:8080"
 #define HOME "http://172.105.25.146:8081"
@@ -28,7 +28,7 @@ using namespace std;
 #define URL_LENGTH 512
 
 // ID variable type is an unsigned 64-bit integer
-typedef unsigned long long int ID;
+typedef std::string ID;
 
 // HTML templates. Used for adding dynamically generated content to the html pages from server-side
 #define PRODUCT_TEMPLATE "<!--[[NEXT-CART-ITEM]]-->"

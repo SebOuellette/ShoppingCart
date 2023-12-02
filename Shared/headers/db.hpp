@@ -55,9 +55,9 @@ public:
 	// Initialize the database table
 	bool init() {
 		string createTables[TABLES] = {
-			"CREATE TABLE IF NOT EXISTS Users (id int NOT NULL UNIQUE, cartid int NOT NULL UNIQUE, name varchar(128) NOT NULL unique, passhash varchar(1024) NOT NULL);",
-			"CREATE TABLE IF NOT EXISTS Carts (id int NOT NULL UNIQUE, userid int NOT NULL UNIQUE);",
-			"CREATE TABLE IF NOT EXISTS Products (id int NOT NULL unique, cartid int NOT NULL, sellerid int NOT NULL, name varchar(128) NOT NULL, description varchar(4096) NOT NULL, quantity int NOT NULL, unitcost double NOT NULL, imgurl varchar(512) NOT NULL);"
+			"CREATE TABLE IF NOT EXISTS Users (id TEXT NOT NULL UNIQUE, cartid int NOT NULL UNIQUE, name varchar(128) NOT NULL UNIQUE, passhash varchar(1024) NOT NULL)",
+			"CREATE TABLE IF NOT EXISTS Carts (id INTEGER NOT NULL UNIQUE, userid TEXT NOT NULL UNIQUE, PRIMARY KEY(id AUTOINCREMENT))",
+			"CREATE TABLE IF NOT EXISTS Products (id TEXT NOT NULL, cartid int NOT NULL, sellerid TEXT NOT NULL, name varchar(128) NOT NULL, description varchar(4096) NOT NULL, quantity int NOT NULL, unitcost double NOT NULL, imgurl varchar(512) NOT NULL, time NUMERIC NOT NULL)"
 		};
 
 		// Open Database
@@ -84,12 +84,12 @@ public:
 
 		// Check if user and cart already exist in system, if not, add them
 		stringstream checkQuery;
-		checkQuery << "INSERT INTO Carts (userid) SELECT " << userID <<" WHERE NOT EXISTS (SELECT 1 FROM Carts WHERE userid = " << userID << ");";
+		checkQuery << "INSERT INTO Carts (userid) SELECT \"" << userID <<"\" WHERE NOT EXISTS (SELECT 1 FROM Carts WHERE userid = \"" << userID << "\");";
 		this->run(checkQuery.str());
 
         stringstream query;
         stringstream selectQuery;
-        selectQuery<<"SELECT Carts.id FROM Carts where Carts.userid="<<userID;
+        selectQuery<<"SELECT Carts.id FROM Carts where Carts.userid=\""<<userID<<"\";";
         //cout << "Running: " << query.str() << endl;
         string cartid;
 
@@ -104,14 +104,14 @@ public:
 
                 // Build a product
                 if (strcmp(colNames[r], "id") == 0) {
-                    *cartid = std::string(argv[r]);
+                    *cartid = argv[r];
 				}
 
             }
             return 0;
         }, (void*)&cartid);
 
-        query << "INSERT INTO Products (id,cartid,sellerid,name,description,quantity,unitcost,imgurl,time) VALUES("<<to_string(p.id)<<","<<cartid<<","<<to_string(p.sellerID)<<",\"" << p.name << "\","<<"\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(std::chrono::duration_cast<std::chrono::milliseconds>(p.timeAdded.time_since_epoch()).count())<<");";
+        query << "INSERT INTO Products (id,cartid,sellerid,name,description,quantity,unitcost,imgurl,time) VALUES(\""<<p.id<<"\","<< cartid <<",\""<<p.sellerID<<"\",\"" << p.name << "\",\"" << p.description << "\","<<to_string(p.quantity) << "," <<to_string(p.price)<<", \"" << p.imgurl << "\","<<to_string(std::chrono::duration_cast<std::chrono::milliseconds>(p.timeAdded.time_since_epoch()).count())<<");";
 		//cout << query.str() << endl;
 	    return this->run(query.str(),NULL);
 
@@ -122,7 +122,7 @@ public:
 	// Get list of products by user id
 	vector<Product> loadCartProducts(ID userID) {
 		stringstream query;
-		query << "SELECT Carts.userid as userid, Products.* FROM Products INNER JOIN Carts ON Carts.id=Products.cartid WHERE Carts.userid=" << userID <<  ";";
+		query << "SELECT Carts.userid as userid, Products.* FROM Products INNER JOIN Carts ON Carts.id=Products.cartid WHERE Carts.userid=\"" << userID <<  "\";";
 		//cout << "Running: " << query.str() << endl;
 
 		vector<Product> products;
@@ -140,9 +140,9 @@ public:
 	
 				// Build a product
 				if (strcmp(colNames[r], "id") == 0) {
-					p.id = atoi(argv[r]);
+					p.id = argv[r];
 				} else if (strcmp(colNames[r], "sellerid") == 0) {
-					p.sellerID = atoi(argv[r]);
+					p.sellerID = argv[r];
 				} else if (strcmp(colNames[r], "name") == 0) {
 					int length = strlen(argv[r]) + 1;
 					strncpy(p.name, argv[r], length);
@@ -174,7 +174,7 @@ public:
 	void removeExpired(ID userID) {
 		
 		std::stringstream queryCheck;
-		queryCheck << "SELECT Carts.userid as userid, Products.* FROM Products INNER JOIN Carts ON Carts.id=Products.cartid WHERE Carts.userid=" << userID <<  ";";
+		queryCheck << "SELECT Carts.userid as userid, Products.* FROM Products INNER JOIN Carts ON Carts.id=Products.cartid WHERE Carts.userid=\"" << userID <<  "\";";
 
 		this->run(queryCheck.str(), [](void* data, int argc, char** argv, char** colNames){
 			Product_s p;
@@ -183,11 +183,11 @@ public:
 
 			for (int r=0;r<argc;r++) {
 				if (strcmp(colNames[r], "id") == 0) {
-					p.id = atoi(argv[r]);
+					p.id = argv[r];
 				} else if (strcmp(colNames[r], "time") == 0) {
 					p.timeAdded = std::chrono::time_point<std::chrono::system_clock>(std::chrono::milliseconds(stoll(argv[r])));
 				} else if (strcmp(colNames[r], "userid") == 0) {
-					userID = atoi(argv[r]);
+					userID = argv[r];
 				}
 			}
 
@@ -195,7 +195,7 @@ public:
 			if (p.isExpired())
 			{
 				std::stringstream query;
-				query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=" << userID << ") AND Products.id=" << p.id << ";";
+				query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=\"" << userID << "\") AND Products.id=\"" << p.id << "\";";
 				bool worked = thisDB->run(query.str());
 			}
 			return 0;

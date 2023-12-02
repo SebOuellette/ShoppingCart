@@ -71,19 +71,19 @@ public:
 	}
 
 	// Return a reference to the product at index index
-	Product& at(ID index) {
-		int size = this->productCount();
+	// Product& at(ID index) {
+	// 	int size = this->productCount();
 
-		// Check if index is out of bounds
-		// It's an unsigned integer, so we only need to check the right side bounds (it already can't be negative)
-		if (index >= size) {
-			throw std::out_of_range("Index is out of range.");
+	// 	// Check if index is out of bounds
+	// 	// It's an unsigned integer, so we only need to check the right side bounds (it already can't be negative)
+	// 	if (index >= size) {
+	// 		throw std::out_of_range("Index is out of range.");
 
-			return _products[0]; // We will return the first element, but will throw an error
-		}
+	// 		return _products[0]; // We will return the first element, but will throw an error
+	// 	}
 
-		return _products[index];
-	}
+	// 	return _products[index];
+	// }
 
 	crow::json::wvalue toJSON()
 	{
