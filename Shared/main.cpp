@@ -341,7 +341,7 @@ string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID us
 	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID); // Update the second user ID template
 	indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
 	indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);
-	indexhtml = replaceTemplates(indexhtml, PRODUCTS_LINK_TEMPLATE, HOME); // PRODUCT is the api link
+	//indexhtml = replaceTemplates(indexhtml, PRODUCTS_LINK_TEMPLATE, HOME); // PRODUCT is the api link
 
 	// This should actually be loaded directly into cart but this is for a demo/test
 	float total = Cart::totalCost(prods);
