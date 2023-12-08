@@ -7,17 +7,22 @@
 #include <regex>
 #include <iostream>
 #include <string>
+#include <random>
+#include <ctime>
 
 
 // Function Definitions
 string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID userID, bool wishlist);
 std::string loadFile(response& res, std::string _folder, std::string _name);
 std::string replaceTemplates(std::string htmlString, const char templateStr[], std::string replacement);
+res_t updateAnalysis(std::vector<Product> prods, std::string token, float checkoutTotal, ID userID);
 bool isAuthorized(ID userID, const request& req);
 
 // Main Function
 int main()
 {
+	srand(time(NULL));
+
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 	crow::SimpleApp app;
 	map<ID, Cart> carts;
@@ -218,8 +223,10 @@ int main()
 		res_t checkoutRes = HTTP::request(std::string(CHECKOUT) + "/api/cartinfo", "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
 		//res_t checkoutRes = http.request(std::string(CHECKOUT) + "/" + to_string(userID), "GET\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"});
 
+		res_t analysisRes = updateAnalysis(prods, token, total, userID);
+
 		// Ad module also wants this data, so send it to them
-		res_t checkoutRes = HTTP::request(std::string(AD) + "/api/parsejson", "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
+		res_t AdRes = HTTP::request(std::string(AD) + "/api/parsejson", "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, jsonObject.dump() + "\0");
 
 
 		// We just assume the response is the link we redirect the user to
@@ -240,11 +247,9 @@ int main()
 		res.end();
 	});
 
-	CROW_ROUTE(app, "/profile/<string>")
+	CROW_ROUTE(app, "/profile")
 	.methods(HTTPMethod::GET)
-		([](const request& req, response& res, ID profileID){
-			std::string pidString = profileID;
-
+		([](const request& req, response& res){
 			// Temporary Redirect
 			res.code = 307;
 
@@ -254,12 +259,12 @@ int main()
 			// THE PROFILE MODULE DOES NOT HAVE A DECIDED URL FOR PROFILES AT THE TIME OF WRITING
 			// Once the module does have a decided url endpoint, the below line MUST be updated to point to the correct url
 
-			profileURL << PROFILE << "/WE_DONT_KNOW_YET/" << pidString << "/";
+			profileURL << PROFILE << "/home/MenuPage";
 			res.set_header("Location", profileURL.str());
 			
 			// If the browser or client does not redirect, they will see a message showing where we are trying to redirect to
 			std::stringstream message;
-			message << "Redirecting to profile page for user: '" << pidString << "' at " << profileURL.str();
+			message << "Redirecting to profile page for user at " << profileURL.str();
 			res.write(message.str());
 
 			res.end();
@@ -295,8 +300,46 @@ int main()
 	return 1;
 }
 
+// Update the analysis module with the product information
+// This function is called during the checkout process
+res_t updateAnalysis(std::vector<Product> prods, std::string token, float checkoutTotal, ID userID) {
+	// Calculate the current time
+	std::time_t ctime = std::time(NULL);
+	// Format the time as string
+	char buffer[30];
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S\0", std::localtime(&ctime));
+	std::string timestr(buffer);
+
+
+	// Create the main json object
+	crow::json::wvalue mainObject;
+	mainObject["Transaction_ID"] = std::to_string((unsigned short int)rand());
+	mainObject["User_ID"] = userID;
+	mainObject["Order_Value"] = checkoutTotal;
+	mainObject["date"] = timestr;
+	
+	// Build the list of products
+	crow::json::wvalue productList;
+	for (int i=0;i<prods.size();i++) {
+		crow::json::wvalue prodObject;
+
+		prodObject["Product_ID"] = prods[i].id;
+		prodObject["Product_Price"] = prods[i].price;
+		prodObject["Product_Quantity"] = prods[i].quantity;
+		productList[i] = std::move(prodObject);
+	}
+
+	// Add the list of products to the root json
+	mainObject["Details_Products"] = std::move(productList);
+
+
+
+	return HTTP::request(std::string(ANALYSIS) + "/Group1/DatabaseController/POST/minhnguyen/Connhenbeo1/group1/2", "POST\0", {"Authorization: Bearer " + token + "\0", "Context-type: application/json\0"}, mainObject.dump() + "\0");
+}
+
 string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID userID, bool wishlist) {
 	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
+	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID); // Update the second user ID template
 	indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
 	indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);
 	indexhtml = replaceTemplates(indexhtml, PRODUCTS_LINK_TEMPLATE, HOME); // PRODUCT is the api link

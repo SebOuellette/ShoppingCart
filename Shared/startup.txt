@@ -6,3 +6,6 @@ docker run --rm -ti -p 8080:23500 -v %cd%\Shared:/Shared --name mywebserver sebo
 
 // To Run in bash
 docker run --rm -ti -p 8080:23500 -v "$(pwd)/Shared:/Shared" --name mywebserver sebouellette/webserver:shoppingcart /Shared/build/cartserver
+
+// Public server startup command
+docker run --rm -d -p 8085:23500 -v "$(pwd)/Shared:/Shared" --name mywebserver sebouellette/webserver:shoppingcart /Shared/build/cartserver

@@ -14,10 +14,11 @@ using namespace std;
 
 
 // Module IP Addresses
-#define PROFILE "http://0.0.0.0"
+#define PROFILE "http://39.106.68.52:8111/"
 #define CHECKOUT "http://10.144.116.131:8080"
-#define CART "http://localhost:8080"
+#define CART "https://shoppingcart.honeybeeks.net"
 #define AD "http://10.144.116.118:7015"
+#define ANALYSIS " https://analysisreportingdatabasemodulegroup1.azurewebsites.net"
 #define PRODUCT "http://172.105.25.146:8080"
 #define HOME "http://172.105.25.146:8081"
 
