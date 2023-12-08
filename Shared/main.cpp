@@ -134,30 +134,6 @@ int main()
             res.end();
         });
 
-	CROW_ROUTE(app, "/<string>") // Products Page
-		([&db](const request& req, response& res, ID userID){
-			// Remove any expired products from the list
-			db.removeExpired(userID);
-
-			// Then retrieve the updated list
-			vector<Product> prods = db.loadProducts(userID, false);
-
-
-			res.set_header("Content-Type", "text/html");
-			
-			// Load the html file
-			string indexhtml = loadFile(res, "", "index.html");
-			indexhtml = updateIndexTemplates(indexhtml, prods, userID, false);
-
-			// TODO
-			// Calculate total and replace the TOTAL_TEMPLATE
-			
-			// Write the final html to the result body
-			res.write(indexhtml);
-
-			res.end();
-		});
-
 	CROW_ROUTE(app, "/wishlist/<string>") // Products Page
 		([&db](const request& req, response& res, ID userID){
 			// Remove any expired products from the list
@@ -256,9 +232,6 @@ int main()
 			// Set the redirection URL
 			std::stringstream profileURL;
 
-			// THE PROFILE MODULE DOES NOT HAVE A DECIDED URL FOR PROFILES AT THE TIME OF WRITING
-			// Once the module does have a decided url endpoint, the below line MUST be updated to point to the correct url
-
 			profileURL << PROFILE << "/home/MenuPage";
 			res.set_header("Location", profileURL.str());
 			
@@ -295,6 +268,32 @@ int main()
 			
 	// 		res.end();
 	// 	});
+
+
+
+	CROW_ROUTE(app, "/<string>") // Products Page
+		([&db](const request& req, response& res, ID userID){
+			// Remove any expired products from the list
+			db.removeExpired(userID);
+
+			// Then retrieve the updated list
+			vector<Product> prods = db.loadProducts(userID, false);
+
+
+			res.set_header("Content-Type", "text/html");
+			
+			// Load the html file
+			string indexhtml = loadFile(res, "", "index.html");
+			indexhtml = updateIndexTemplates(indexhtml, prods, userID, false);
+
+			// TODO
+			// Calculate total and replace the TOTAL_TEMPLATE
+			
+			// Write the final html to the result body
+			res.write(indexhtml);
+
+			res.end();
+		});
 		
 	app.port(23500).multithreaded().run();
 	return 1;
