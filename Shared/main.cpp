@@ -146,7 +146,7 @@ int main()
 			res.set_header("Content-Type", "text/html");
 			
 			// Load the html file
-			string indexhtml = loadFile(res, "", "index.html");
+			string indexhtml = loadFile(res, "", "wishlist.html");
 			indexhtml = updateIndexTemplates(indexhtml, prods, userID, true);
 
 			// TODO
