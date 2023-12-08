@@ -64,7 +64,7 @@ public:
 		float total = 0;
 		
 		for (Product p : products) {
-			total += p.price;
+			total += p.price * p.quantity;
 		}
 
 		return total;

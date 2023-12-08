@@ -96,7 +96,7 @@ int main()
             res.end();
         });
 
-	CROW_ROUTE(app, "/api/remove/<string>/<string>") // upload product to cart
+	CROW_ROUTE(app, "/api/remove/<string>/<string>") // remove product from cart
 	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
         ([&db](const request& req, response& res,ID userID, ID productID){
 
@@ -114,6 +114,35 @@ int main()
 
             res.end();
         });
+
+	CROW_ROUTE(app, "/api/decrease/<string>/<string>") // remove single product from cart
+	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
+        ([&db](const request& req, response& res,ID userID, ID productID){
+
+			db.decreaseProductQuantity(productID, 0);
+			// Redirect to the cart page
+            res.code = 307;
+			res.set_header("Location", std::string(CART) + "/" + userID);
+		
+			res.write("Redirecting to user cart");
+
+            res.end();
+        });
+
+
+	CROW_ROUTE(app, "/api/increase/<string>/<string>") // add single product to cart
+	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
+        ([&db](const request& req, response& res,ID userID, ID productID){
+
+			db.increaseProductQuantity(productID, 0);
+			// Redirect to the cart page
+            res.code = 307;
+			res.set_header("Location", std::string(CART) + "/" + userID);
+		
+			res.write("Redirecting to user cart");
+
+            res.end();
+        });	
 
 	CROW_ROUTE(app, "/api/wishlist/remove/<string>/<string>") // upload product to cart
 	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
@@ -365,6 +394,8 @@ string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID us
 					"<p class=\"product-description\">" << prods[i].description << "</p>"
 				"</div>"
 			"</div>"
+			"<button class=\"product-remove\"><a href=\"/api/decrease/"<<userID<<"/"<<prods[i].id<<"\">-</a></button>"
+			"<button class=\"product-remove\"><a href=\"/api/increase/"<<userID<<"/"<<prods[i].id<<"\">+</a></button>"
 			"<button class=\"product-remove\"><a href=\"/api/"<<(wishlist?"wishlist/":"")<<"remove/" << userID << "/" << prods[i].id << "\">Remove</a></button>"
 		"</li>" << PRODUCT_TEMPLATE;
 
