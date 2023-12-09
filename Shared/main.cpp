@@ -41,21 +41,30 @@ int main()
         ([&db](const request& req, response& res,ID userID){
             res.set_header("Content-Type", "text/html");
 
-			const crow::json::rvalue& parsed = crow::json::load(req.body);
+		const crow::json::rvalue& parsed = crow::json::load(req.body);
 
-			Product_s p;
+		Product_s p;
 
-			p.id = parsed["id"].s();
-			p.sellerID = parsed["sellerid"].s();
-			p.name = parsed["name"].s();
-			p.description = parsed["description"].s();
-			p.imgurl = parsed["imgurl"].s();
-			p.price = parsed["cost"].d();
-			p.quantity = 1;
+		p.id = parsed["id"].s();
+		p.sellerID = parsed["sellerid"].s();
+		p.name = parsed["name"].s();
+		p.description = parsed["description"].s();
+		p.imgurl = parsed["imgurl"].s();
+		p.price = parsed["cost"].d();
+		p.quantity = 1;
+
 
             // Load the html file
             string indexhtml = loadFile(res, "", "index.html");
-            bool worked=db.uploadProducts(userID, p);
+            
+	 	bool worked = false;
+
+		if (db.checkIfExists(userID, p.id, false)) {
+			db.increaseProductQuantity(p.id, false);
+			worked = true;
+		} else {
+	    		worked=db.uploadProducts(userID, p);
+		}
 
             if(worked)
                 res.code=200;
@@ -85,7 +94,14 @@ int main()
 
             // Load the html file
             string indexhtml = loadFile(res, "", "index.html");
-            bool worked=db.uploadProducts(userID, p, true);
+             bool worked = false;
+
+                if (db.checkIfExists(userID, p.id, true)) {
+                        db.increaseProductQuantity(p.id, true);
+                        worked = true;
+                } else {
+                        worked=db.uploadProducts(userID, p, true);
+                }
 
             if(worked)
                 res.code=200;
@@ -102,7 +118,7 @@ int main()
 
             // Load the html file
 			std::stringstream query;
-			query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=\"" << userID << "\") AND Products.id=\"" << productID << "\";";
+			query << "DELETE FROM Products WHERE cartid=(SELECT Carts.id FROM Carts WHERE userid=\"" << userID << "\") AND Products.id=\"" << productID << "\" LIMIT 1;";
 
             bool worked = db.run(query.str());
 
@@ -150,7 +166,7 @@ int main()
 
             // Load the html file
 			std::stringstream query;
-			query << "DELETE FROM WantedProducts WHERE cartid=(SELECT Wishlists.id FROM Wishlists WHERE userid=\"" << userID << "\") AND WantedProducts.id=\"" << productID << "\";";
+			query << "DELETE FROM WantedProducts WHERE cartid=(SELECT Wishlists.id FROM Wishlists WHERE userid=\"" << userID << "\") AND WantedProducts.id=\"" << productID << "\" LIMIT 1;";
 
             bool worked = db.run(query.str());
 
@@ -366,7 +382,8 @@ res_t updateAnalysis(std::vector<Product> prods, std::string token, float checko
 }
 
 string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID userID, bool wishlist) {
-	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
+	if (!wishlist) 
+		indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
 	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID); // Update the second user ID template
 	indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
 	indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);

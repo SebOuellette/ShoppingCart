@@ -50,7 +50,7 @@ public:
 
 		// Returns the exit status. AKA the status of the last query
 		return (exRet == SQLITE_OK);
-	}
+	};
 
 	// Initialize the database table
 	bool init() {
@@ -81,7 +81,7 @@ public:
 		// Returns the final exit status. AKA the status of the last query
 		return (exit == SQLITE_OK);
 	}
-	//upload new products to the cart
+	//upoload new products to the cart
 	bool uploadProducts(ID userID, Product_s p, bool wishlist=false) {
 
 		std::string CartTable = wishlist ? "Wishlists" : "Carts";
@@ -158,7 +158,7 @@ public:
 					int length = strlen(argv[r]) + 1;
 					strncpy(p.description, argv[r], length);
 				} else if (strcmp(colNames[r], "imgurl") == 0) {
-					int length = strlen(argv[r]);
+					int length = strlen(argv[r]) + 1;
 					strncpy(p.imgurl, argv[r], length);
 				} else if (strcmp(colNames[r], "quantity") == 0) {
 					p.quantity = atoi(argv[r]);
@@ -230,7 +230,38 @@ public:
 	
 	}
 
+	bool checkIfExists(ID userID, ID productID, int wishlist) {
+		std::string CartTable = wishlist ? "Wishlists" : "Carts";
+                std::string ProductTable = wishlist ? "WantedProducts" : "Products";
 
+                stringstream query;
+                query << "SELECT "<<CartTable<<".userid as userid, "<<ProductTable<<".* FROM "<<ProductTable<<" INNER JOIN "<<CartTable<<" ON "<<CartTable<<".id="<<ProductTable<<".cartid WHERE "<<CartTable<<".userid=\"" << userID <<  "\" AND " << ProductTable << ".id=\"" << productID << "\";";
+                //cout << "Running: " << query.str() << endl;
+
+                vector<Product> products;
+
+		// We actually search for a product quantity variable, since that's what we want
+		bool foundProduct = false;
+
+                this->run(query.str(), [](void* data, int argc, char** argv, char** colNames){
+                        // This same block of code will run for each SQL result
+                        //cout << "Found: " << argc << " rows" << endl;
+			bool* foundProduct = (bool*)data;
+
+                        // Loop through each row
+                        for (int r=0;r<argc;r++) {
+
+                                // Build a product
+                                if (strcmp(colNames[r], "quantity") == 0) {
+                                        *foundProduct = true;
+				}
+			}
+
+			return (int)*foundProduct;
+		}, (void*)&foundProduct);
+
+		return foundProduct;
+	}
 
 };
 
