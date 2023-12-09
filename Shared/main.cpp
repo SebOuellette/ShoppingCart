@@ -366,7 +366,8 @@ res_t updateAnalysis(std::vector<Product> prods, std::string token, float checko
 }
 
 string updateIndexTemplates(std::string indexhtml, vector<Product> &prods, ID userID, bool wishlist) {
-	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
+	if (!wishlist) 
+		indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID);
 	indexhtml = replaceTemplates(indexhtml, USER_ID_TEMPLATE, userID); // Update the second user ID template
 	indexhtml = replaceTemplates(indexhtml, AD_TEMPLATE, AD);
 	indexhtml = replaceTemplates(indexhtml, HOME_LINK_TEMPLATE, HOME);

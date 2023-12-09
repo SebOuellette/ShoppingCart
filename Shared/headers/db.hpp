@@ -81,7 +81,7 @@ public:
 		// Returns the final exit status. AKA the status of the last query
 		return (exit == SQLITE_OK);
 	}
-	//upload new products to the cart
+	//upoload new products to the cart
 	bool uploadProducts(ID userID, Product_s p, bool wishlist=false) {
 
 		std::string CartTable = wishlist ? "Wishlists" : "Carts";
@@ -158,7 +158,7 @@ public:
 					int length = strlen(argv[r]) + 1;
 					strncpy(p.description, argv[r], length);
 				} else if (strcmp(colNames[r], "imgurl") == 0) {
-					int length = strlen(argv[r]);
+					int length = strlen(argv[r]) + 1;
 					strncpy(p.imgurl, argv[r], length);
 				} else if (strcmp(colNames[r], "quantity") == 0) {
 					p.quantity = atoi(argv[r]);
