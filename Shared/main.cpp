@@ -430,6 +430,9 @@ std::string replaceTemplates(std::string htmlString, const char templateStr[], s
 
 	// Find the location of the first occurance of the product template
 	size_t loc = htmlString.find(templateStr);
+	if (loc <= templateSize) {
+		return htmlString;
+	}
 
 	// Split the html in two, using the product template as a delimeter
 	std::string before = htmlString.substr(0, loc);
