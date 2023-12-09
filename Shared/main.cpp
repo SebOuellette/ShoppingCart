@@ -119,7 +119,7 @@ int main()
 	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
         ([&db](const request& req, response& res,ID userID, ID productID){
 
-			db.decreaseProductQuantity(productID, 0);
+			db.decreaseProductQuantity(productID, userID, 0);
 			// Redirect to the cart page
             res.code = 307;
 			res.set_header("Location", std::string(CART) + "/" + userID);
@@ -134,7 +134,7 @@ int main()
 	.methods(HTTPMethod::DELETE, HTTPMethod::GET)
         ([&db](const request& req, response& res,ID userID, ID productID){
 
-			db.increaseProductQuantity(productID, 0);
+			db.increaseProductQuantity(productID, userID, 0);
 			// Redirect to the cart page
             res.code = 307;
 			res.set_header("Location", std::string(CART) + "/" + userID);

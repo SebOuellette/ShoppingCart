@@ -210,20 +210,20 @@ public:
 		}, (void*)this);
 	}
 	
-	void increaseProductQuantity(ID productID, int wishlist) {
+	void increaseProductQuantity(ID productID, ID userID, int wishlist) {
 		std::string ProductTable = wishlist ? "WantedProducts" : "Products";
 
 		stringstream query;
-		query << "UPDATE "<< ProductTable << " SET quantity = quantity + 1 WHERE id = \"" << productID << "\";";
+		query << "UPDATE "<< ProductTable << " SET quantity = quantity + 1 WHERE id = \"" << productID << "\" AND userid=\"" << userID << "\";";
 		bool worked = this->run(query.str());
 	}
 
-	void decreaseProductQuantity(ID productID, int wishlist) {
+	void decreaseProductQuantity(ID productID, ID userID, int wishlist) {
 		std::string ProductTable = wishlist ? "WantedProducts" : "Products";
 
 		stringstream query;
 		stringstream query2;
-		query << "UPDATE "<< ProductTable << " SET quantity = quantity - 1 WHERE id = \"" << productID << "\";";
+		query << "UPDATE "<< ProductTable << " SET quantity = quantity - 1 WHERE id = \"" << productID << "\" AND userid=\"" << userID << "\";";
 		bool worked = this->run(query.str());		
 		query2 << "DELETE FROM "<< ProductTable << " WHERE quantity < 1;";
 		worked = this->run(query2.str());
